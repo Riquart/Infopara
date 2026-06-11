@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Ameli Pro — Infirmiers Test</title>
+    <link>https://www.ameli.fr/infirmier</link>
+    <description>Flux de test</description>
+
+    <item>
+      <title>Revalorisation des actes infirmiers NGAP au 1er juillet 2024</title>
+      <link>https://www.ameli.fr/infirmier/actualites/revalorisation-ngap-2024</link>
+      <pubDate>Mon, 10 Jun 2024 09:00:00 +0200</pubDate>
+      <description>Les actes AIS et AMI sont revalorisés à compter du 1er juillet 2024 selon l'avenant 9 à la convention nationale.</description>
+    </item>
+
+    <item>
+      <title>Télétransmission SESAM-Vitale : nouvelle version 1.42</title>
+      <link>https://www.ameli.fr/infirmier/actualites/sesamvitale-v142</link>
+      <pubDate>Tue, 04 Jun 2024 14:30:00 +0200</pubDate>
+      <description>Mise à jour obligatoire du poste SESAM-Vitale pour les infirmiers libéraux avant le 30 septembre 2024.</description>
+    </item>
+
+    <item>
+      <title>Formation DPC : nouvelles actions disponibles pour les IDE</title>
+      <link>https://www.ameli.fr/infirmier/actualites/dpc-2024-ide</link>
+      <pubDate>Wed, 29 May 2024 11:00:00 +0200</pubDate>
+      <description>L'Agence nationale du DPC publie de nouvelles actions de formation pour les infirmiers diplômés d'État.</description>
+    </item>
+
+    <item>
+      <title></title>
+      <link>https://www.ameli.fr/infirmier/actualites/sans-titre</link>
+      <pubDate>Wed, 29 May 2024 11:00:00 +0200</pubDate>
+      <description>Article sans titre — doit être ignoré par le parser.</description>
+    </item>
+
+    <item>
+      <title>Article sans URL valide</title>
+      <link>not-a-url</link>
+      <pubDate>Wed, 29 May 2024 11:00:00 +0200</pubDate>
+      <description>Doit être ignoré.</description>
+    </item>
+  </channel>
+</rss>

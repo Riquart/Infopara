@@ -1,0 +1,37 @@
+{% if articles %}
+  {% for article in articles %}
+    {% include "_article_card.html" %}
+  {% endfor %}
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="flex items-center justify-center gap-3 mt-6 text-sm">
+    {% if page > 1 %}
+      <button
+        hx-get="/articles?page={{ page - 1 }}&{{ filters | urlencode_filters }}"
+        hx-target="#articles-container"
+        hx-swap="innerHTML"
+        class="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-100">
+        ← Précédent
+      </button>
+    {% endif %}
+    <span class="text-gray-500">Page {{ page }} / {{ total_pages }} — {{ total }} articles</span>
+    {% if page < total_pages %}
+      <button
+        hx-get="/articles?page={{ page + 1 }}&{{ filters | urlencode_filters }}"
+        hx-target="#articles-container"
+        hx-swap="innerHTML"
+        class="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-100">
+        Suivant →
+      </button>
+    {% endif %}
+  </div>
+  {% endif %}
+
+{% else %}
+  <div class="text-center py-16 text-gray-400">
+    <div class="text-4xl mb-3">📭</div>
+    <p class="font-medium">Aucun article trouvé</p>
+    <p class="text-sm mt-1">Modifiez les filtres ou lancez un refresh.</p>
+  </div>
+{% endif %}

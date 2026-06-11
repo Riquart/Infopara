@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Sources — VeilleAuxMed{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-5">
+  <h1 class="text-xl font-bold text-gray-800">Sources de veille</h1>
+  <span class="text-sm text-gray-500">{{ sources | length }} sources configurées</span>
+</div>
+
+{% set cat_order = ['officiel', 'ordre', 'syndicat', 'presse', 'editeur'] %}
+{% set cat_labels = {'officiel':'Officiels / Institutionnels','ordre':'Ordres professionnels','syndicat':'Syndicats','presse':'Presse professionnelle','editeur':'Éditeurs logiciels'} %}
+{% set cat_colors = {'officiel':'bg-red-100 text-red-800','ordre':'bg-indigo-100 text-indigo-800','syndicat':'bg-amber-100 text-amber-800','presse':'bg-sky-100 text-sky-800','editeur':'bg-emerald-100 text-emerald-800'} %}
+{% set prof_labels = {'infirmier':'IDE','kinesitherapeute':'Kiné','orthophoniste':'Orthoph.','orthoptiste':'Orthopt.','pedicure-podologue':'Podologue'} %}
+
+{% for cat in cat_order %}
+  {% set cat_sources = sources | selectattr('category.value', 'equalto', cat) | list %}
+  {% if cat_sources %}
+  <section class="mb-8">
+    <h2 class="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <span class="badge {{ cat_colors.get(cat, 'bg-gray-100 text-gray-700') }}">{{ cat_labels.get(cat, cat) }}</span>
+      <span class="text-sm font-normal text-gray-400">{{ cat_sources | length }} sources</span>
+    </h2>
+
+    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+      <table class="w-full text-sm bg-white">
+        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Nom</th>
+            <th class="text-left px-4 py-2">Type</th>
+            <th class="text-left px-4 py-2">Professions</th>
+            <th class="text-left px-4 py-2">Dernier fetch</th>
+            <th class="text-left px-4 py-2">Articles</th>
+            <th class="text-left px-4 py-2">Statut</th>
+            <th class="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for source in cat_sources %}
+          <tr class="hover:bg-gray-50 {% if not source.active %}opacity-50{% endif %}">
+            <td class="px-4 py-3">
+              <a href="{{ source.url }}" target="_blank" rel="noopener"
+                 class="font-medium text-gray-900 hover:text-indigo-700">
+                {{ source.name }}
+              </a>
+            </td>
+            <td class="px-4 py-3">
+              <span class="badge {% if source.kind.value == 'rss' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ source.kind.value | upper }}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                {% for p in source.default_profession_tags %}
+                  <span class="badge bg-gray-100 text-gray-600 text-xs">{{ prof_labels.get(p, p) }}</span>
+                {% else %}
+                  <span class="text-gray-300 text-xs">—</span>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="px-4 py-3 text-gray-500 text-xs">
+              {% if source.last_fetched_at %}
+                {{ source.last_fetched_at.strftime('%d/%m/%Y %H:%M') }}
+              {% else %}
+                <span class="text-gray-300">Jamais</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 font-semibold text-gray-700">
+              {{ counts.get(source.id, 0) }}
+            </td>
+            <td class="px-4 py-3 text-xs" id="source-status-{{ source.id }}">
+              {% if source.last_error %}
+                <span class="text-red-500" title="{{ source.last_error }}">⚠ {{ source.last_error | truncate(40) }}</span>
+              {% else %}
+                <span class="text-green-600">✓ OK</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              <button
+                hx-post="/refresh/{{ source.id }}"
+                hx-target="#source-status-{{ source.id }}"
+                hx-swap="innerHTML"
+                class="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100 transition">
+                ↻
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+{% endfor %}
+
+{% endblock %}

@@ -12,47 +12,72 @@ sources:
   # ──────────────────────────────────────────────────────────────
 
   - name: "Ameli Pro — Infirmiers"
-    url: "https://www.ameli.fr/infirmier/actualites/toutes-les-actualites.rss"
-    kind: rss
+    url: "https://www.ameli.fr/infirmier/actualites"
+    kind: html
     category: officiel
+    selector: "article.node"
+    title_sel: "h2.titre-actus, h3.titre-actus"
+    link_sel: "h2.titre-actus a, h3.titre-actus a, a"
+    date_sel: "time, .date"
+    summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention", "télétransmission/SESAM-Vitale"]
     default_profession_tags: ["infirmier"]
     active: true
 
   - name: "Ameli Pro — Kinésithérapeutes"
-    url: "https://www.ameli.fr/masseur-kinesitherapeute/actualites/toutes-les-actualites.rss"
-    kind: rss
+    url: "https://www.ameli.fr/masseur-kinesitherapeute/actualites"
+    kind: html
     category: officiel
+    selector: "article.node"
+    title_sel: "h2.titre-actus, h3.titre-actus"
+    link_sel: "h2.titre-actus a, h3.titre-actus a, a"
+    date_sel: "time, .date"
+    summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["kinesitherapeute"]
     active: true
 
   - name: "Ameli Pro — Orthophonistes"
-    url: "https://www.ameli.fr/orthophoniste/actualites/toutes-les-actualites.rss"
-    kind: rss
+    url: "https://www.ameli.fr/orthophoniste/actualites"
+    kind: html
     category: officiel
+    selector: "article.node"
+    title_sel: "h2.titre-actus, h3.titre-actus"
+    link_sel: "h2.titre-actus a, h3.titre-actus a, a"
+    date_sel: "time, .date"
+    summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["orthophoniste"]
     active: true
 
   - name: "Ameli Pro — Orthoptistes"
-    url: "https://www.ameli.fr/orthoptiste/actualites/toutes-les-actualites.rss"
-    kind: rss
+    url: "https://www.ameli.fr/orthoptiste/actualites"
+    kind: html
     category: officiel
+    selector: "article.node"
+    title_sel: "h2.titre-actus, h3.titre-actus"
+    link_sel: "h2.titre-actus a, h3.titre-actus a, a"
+    date_sel: "time, .date"
+    summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["orthoptiste"]
     active: true
 
   - name: "Ameli Pro — Pédicures-Podologues"
-    url: "https://www.ameli.fr/pedicure-podologue/actualites/toutes-les-actualites.rss"
-    kind: rss
+    url: "https://www.ameli.fr/pedicure-podologue/actualites"
+    kind: html
     category: officiel
+    selector: "article.node"
+    title_sel: "h2.titre-actus, h3.titre-actus"
+    link_sel: "h2.titre-actus a, h3.titre-actus a, a"
+    date_sel: "time, .date"
+    summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["pedicure-podologue"]
     active: true
 
   - name: "HAS — Actualités"
-    url: "https://www.has-sante.fr/jcms/fc_1249577/fr/flux-rss-de-la-has?cid=fc_1249577"
+    url: "https://www.has-sante.fr/jcms/c_5443/fr/rss"
     kind: rss
     category: officiel
     default_tags: ["réglementation", "formation/DPC"]
@@ -67,48 +92,48 @@ sources:
     default_profession_tags: []
     active: true
 
-  - name: "Légifrance — JORF santé (RSS)"
-    url: "https://www.legifrance.gouv.fr/rss/jorf.xml"
-    kind: rss
-    category: officiel
-    default_tags: ["JO/décrets", "réglementation"]
-    default_profession_tags: []
-    active: true
-    # Note : flux généraliste — le tagger filtre sur mots-clés métier
-
   - name: "Ministère de la Santé — Espace presse"
-    url: "https://sante.gouv.fr/actualites/presse/communiques-de-presse/rss"
+    url: "https://sante.gouv.fr/actualites/presse/rss"
     kind: rss
     category: officiel
     default_tags: ["réglementation", "actualité-générale"]
     default_profession_tags: []
     active: true
 
+  - name: "Légifrance — JORF"
+    url: "https://www.legifrance.gouv.fr/rss/jorf.xml"
+    kind: rss
+    category: officiel
+    default_tags: ["JO/décrets", "réglementation"]
+    default_profession_tags: []
+    active: false
+    # NOTE: 403 Cloudflare — accès bloqué aux bots. Désactivé.
+
   # ──────────────────────────────────────────────────────────────
   # ORDRES PROFESSIONNELS
   # ──────────────────────────────────────────────────────────────
 
   - name: "ONI — Ordre National des Infirmiers"
-    url: "https://www.ordre-infirmiers.fr/actualites.html"
+    url: "https://www.ordre-infirmiers.fr/"
     kind: html
     category: ordre
-    selector: "article.news-item"
-    title_sel: "h2, h3"
+    selector: "article, .node--type-actualite, .views-row"
+    title_sel: "h2, h3, .node__title"
     link_sel: "a"
     date_sel: "time, .date"
-    summary_sel: "p.excerpt, .description"
-    default_tags: ["ordre", "réglementation", "syndical"]
+    summary_sel: "p, .field--name-body"
+    default_tags: ["ordre", "réglementation"]
     default_profession_tags: ["infirmier"]
     active: true
 
   - name: "CNOMK — Ordre des Kinésithérapeutes"
-    url: "https://www.ordremk.fr/actualites/"
+    url: "https://www.ordremk.fr/actualites/ordre/"
     kind: html
     category: ordre
-    selector: "article, .post-item"
+    selector: "article, .post"
     title_sel: "h2, h3, .entry-title"
-    link_sel: "a.more-link, h2 a, h3 a"
-    date_sel: ".post-date, time, .entry-date"
+    link_sel: "a"
+    date_sel: "time, .entry-date, .post-date"
     summary_sel: ".entry-summary, p"
     default_tags: ["ordre", "réglementation"]
     default_profession_tags: ["kinesitherapeute"]
@@ -145,7 +170,7 @@ sources:
   # ──────────────────────────────────────────────────────────────
 
   - name: "FNI — Fédération Nationale des Infirmiers"
-    url: "https://www.fni.fr/actualites"
+    url: "https://www.fni.fr/nos-actualites"
     kind: html
     category: syndicat
     selector: "article, .view-row"
@@ -207,7 +232,8 @@ sources:
     summary_sel: "p"
     default_tags: ["syndical", "convention"]
     default_profession_tags: ["orthoptiste"]
-    active: true
+    active: false
+    # NOTE: cert SSL invalide (hostname mismatch). Désactivé.
 
   - name: "FNP — Fédération Nationale des Podologues"
     url: "https://www.fnp.fr/actualites/"
@@ -220,7 +246,8 @@ sources:
     summary_sel: "p"
     default_tags: ["syndical", "convention"]
     default_profession_tags: ["pedicure-podologue"]
-    active: true
+    active: false
+    # NOTE: domaine ne résout pas (DNS). Désactivé.
 
   # ──────────────────────────────────────────────────────────────
   # PRESSE PROFESSIONNELLE
@@ -235,7 +262,7 @@ sources:
     active: true
 
   - name: "Espace Infirmier"
-    url: "https://www.espaceinfirmier.fr/rss/feed.rss"
+    url: "https://www.espaceinfirmier.fr/rss/actualites.xml"
     kind: rss
     category: presse
     default_tags: ["actualité-générale", "formation/DPC"]
@@ -243,17 +270,27 @@ sources:
     active: true
 
   - name: "Infirmiers.com"
-    url: "https://www.infirmiers.com/rss/news.xml"
-    kind: rss
+    url: "https://www.infirmiers.com/toute-l-actualite"
+    kind: html
     category: presse
+    selector: "article, .news-item, .card"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
     default_tags: ["actualité-générale", "formation/DPC", "réglementation"]
     default_profession_tags: ["infirmier"]
     active: true
 
   - name: "TICsanté"
-    url: "https://www.ticsante.com/rss.xml"
-    kind: rss
+    url: "https://www.ticsante.com/index.html"
+    kind: html
     category: presse
+    selector: "article, .article-item"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
     default_tags: ["logiciels-métier", "télésanté", "télétransmission/SESAM-Vitale"]
     default_profession_tags: []
     active: true
@@ -267,9 +304,14 @@ sources:
     active: true
 
   - name: "What's Up Doc"
-    url: "https://www.whatsupdoc-lemag.fr/feed"
-    kind: rss
+    url: "https://www.whatsupdoc-lemag.fr/actualites"
+    kind: html
     category: presse
+    selector: "article, .post, .article-item"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
     default_tags: ["actualité-générale", "réglementation"]
     default_profession_tags: []
     active: true
@@ -292,7 +334,8 @@ sources:
     category: editeur
     default_tags: ["logiciels-métier", "télétransmission/SESAM-Vitale", "télésanté"]
     default_profession_tags: ["infirmier", "kinesitherapeute"]
-    active: true
+    active: false
+    # NOTE: 403 — accès bloqué. Désactivé.
 
   - name: "Inzee.Care — Actualités"
     url: "https://www.inzee.care/blog/rss.xml"
@@ -308,7 +351,8 @@ sources:
     category: editeur
     default_tags: ["logiciels-métier", "télésanté"]
     default_profession_tags: []
-    active: true
+    active: false
+    # NOTE: 404 — URL introuvable. Désactivé.
 
   # ──────────────────────────────────────────────────────────────
   # SOURCES EN ATTENTE / TODO

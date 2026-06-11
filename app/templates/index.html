@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — VeilleAuxMed{% endblock %}
+
+{% block content %}
+
+<!-- Counters -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <div class="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+    <div class="text-3xl font-bold text-indigo-600">{{ counters.today }}</div>
+    <div class="text-xs text-gray-500 mt-1">Aujourd'hui</div>
+  </div>
+  <div class="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+    <div class="text-3xl font-bold text-indigo-500">{{ counters.week }}</div>
+    <div class="text-xs text-gray-500 mt-1">7 derniers jours</div>
+  </div>
+  <div class="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+    <div class="text-3xl font-bold text-indigo-400">{{ counters.month }}</div>
+    <div class="text-xs text-gray-500 mt-1">30 derniers jours</div>
+  </div>
+  <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+    <div class="text-xs font-semibold text-gray-500 mb-1">Par profession</div>
+    {% set prof_labels = {'infirmier':'IDE','kinesitherapeute':'Kiné','orthophoniste':'Ortho.','orthoptiste':'Orthopt.','pedicure-podologue':'Podologue'} %}
+    {% for p, cnt in counters.by_profession.items() %}
+      <div class="flex justify-between text-xs">
+        <span class="text-gray-700">{{ prof_labels.get(p, p) }}</span>
+        <span class="font-semibold">{{ cnt }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="flex gap-6">
+  <!-- Filters sidebar -->
+  <aside class="w-56 shrink-0">
+    <form id="filter-form"
+          hx-get="/articles"
+          hx-target="#articles-container"
+          hx-swap="innerHTML"
+          hx-trigger="change, submit"
+          hx-push-url="true"
+          class="space-y-4">
+
+      <!-- Search -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Recherche</label>
+        <input type="text" name="q" value="{{ filters.q or '' }}"
+               placeholder="Mot-clé dans le titre…"
+               hx-trigger="keyup changed delay:400ms"
+               hx-get="/articles"
+               hx-target="#articles-container"
+               hx-swap="innerHTML"
+               class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"/>
+      </div>
+
+      <!-- Profession -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Profession</label>
+        {% set prof_labels = {'infirmier':'Infirmiers (IDE)','kinesitherapeute':'Kinésithérapeutes','orthophoniste':'Orthophonistes','orthoptiste':'Orthoptistes','pedicure-podologue':'Pédicures-Podologues'} %}
+        <select name="profession" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-indigo-400">
+          <option value="">Toutes</option>
+          {% for p in professions %}
+            <option value="{{ p }}" {% if filters.profession == p %}selected{% endif %}>{{ prof_labels.get(p, p) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Tag -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Thème</label>
+        <select name="tag" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-indigo-400">
+          <option value="">Tous</option>
+          {% for t in tags %}
+            <option value="{{ t }}" {% if filters.tag == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Catégorie</label>
+        <select name="category" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-indigo-400">
+          <option value="">Toutes</option>
+          {% for c in categories %}
+            <option value="{{ c }}" {% if filters.category == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Date range -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Du</label>
+        <input type="date" name="date_from" value="{{ filters.date_from or '' }}"
+               class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Au</label>
+        <input type="date" name="date_to" value="{{ filters.date_to or '' }}"
+               class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"/>
+      </div>
+
+      <!-- Reset -->
+      <a href="/" class="block text-center text-xs text-indigo-600 hover:underline">Réinitialiser les filtres</a>
+
+      <!-- Export -->
+      <div class="pt-2 border-t border-gray-200 space-y-1">
+        <div class="text-xs font-semibold text-gray-600 mb-1">Export</div>
+        <a href="/export/csv?{{ request.url.query }}"
+           class="block text-center text-xs bg-gray-100 hover:bg-gray-200 rounded py-1 px-2 text-gray-700">
+          ⬇ CSV (filtres actifs)
+        </a>
+        <a href="/export/opml"
+           class="block text-center text-xs bg-gray-100 hover:bg-gray-200 rounded py-1 px-2 text-gray-700">
+          ⬇ OPML (sources RSS)
+        </a>
+      </div>
+    </form>
+  </aside>
+
+  <!-- Article list -->
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold text-gray-700 text-sm">{{ total }} articles</h2>
+      <span id="list-spinner" class="htmx-indicator text-xs text-gray-400">Chargement…</span>
+    </div>
+    <div id="articles-container" hx-indicator="#list-spinner">
+      {% include "_articles_list.html" %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

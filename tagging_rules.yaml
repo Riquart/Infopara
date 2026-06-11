@@ -1,0 +1,223 @@
+# Règles de tagging automatique — sans IA
+# Chaque règle contient :
+#   tag: nom du tag à appliquer
+#   patterns: liste de regex (case-insensitive) matchés sur titre + URL
+#
+# Profession tags — matchés sur titre uniquement
+profession_rules:
+  - tag: infirmier
+    patterns:
+      - "infirmi(er|ère|ers|ères)"
+      - "\\bIDEL\\b"
+      - "\\bIDE\\b"
+      - "\\bAIS\\b"
+      - "\\bAMI\\b"
+      - "\\bAMDE\\b"
+
+  - tag: kinesitherapeute
+    patterns:
+      - "kiné(sithérapeu|sithérapeut|sithérap|sithéra|s)?"
+      - "kinésith"
+      - "\\bMK\\b"
+      - "masseur.kiné"
+      - "\\bAMK\\b"
+
+  - tag: orthophoniste
+    patterns:
+      - "orthophon"
+      - "\\bAMO\\b"
+      - "bilan de langage"
+
+  - tag: orthoptiste
+    patterns:
+      - "orthopt"
+      - "\\bAMY\\b"
+
+  - tag: pedicure-podologue
+    patterns:
+      - "podolog"
+      - "pédicure"
+      - "pedicure"
+      - "\\bAMP\\b"
+
+# Thematic tags — matchés sur titre + URL
+thematic_rules:
+  - tag: "facturation"
+    patterns:
+      - "facturation"
+      - "cotation"
+      - "tarif(ication)?"
+      - "honoraire"
+      - "\\bNGAP\\b"
+      - "\\bCCAM\\b"
+      - "\\bAMI\\b"
+      - "\\bAIS\\b"
+      - "\\bAMK\\b"
+      - "\\bAMO\\b"
+      - "\\bAMY\\b"
+      - "\\bAMP\\b"
+      - "remboursement"
+      - "prise en charge"
+      - "acte infirmier"
+      - "acte kinésithérapique"
+
+  - tag: "NGAP/CCAM"
+    patterns:
+      - "\\bNGAP\\b"
+      - "\\bCCAM\\b"
+      - "nomenclature"
+      - "cotation"
+      - "coefficient"
+
+  - tag: "convention"
+    patterns:
+      - "convention(nelle|nel|nels)?"
+      - "avenant"
+      - "accord conventionnel"
+      - "négociation"
+      - "\\bCPAM\\b"
+      - "\\bCAM\\b"
+
+  - tag: "télétransmission/SESAM-Vitale"
+    patterns:
+      - "télétransmission"
+      - "SESAM.Vitale"
+      - "\\bSESAM\\b"
+      - "feuille de soins"
+      - "\\bFSE\\b"
+      - "carte vitale"
+      - "\\bADRI\\b"
+      - "\\bCPS\\b"
+      - "carte de professionnel"
+
+  - tag: "logiciels-métier"
+    patterns:
+      - "logiciel"
+      - "\\bSIL\\b"
+      - "application mobile"
+      - "mise à jour"
+      - "\\bLGO\\b"
+      - "interopérabilité"
+      - "DMP"
+      - "\\bMSS\\b"
+      - "messagerie sécurisée"
+      - "Ségur"
+      - "vague"
+      - "ANS"
+      - "référencement"
+      - "Inzee"
+      - "Maiia"
+      - "Vega"
+      - "Albus"
+      - "Médiclick"
+      - "Doctolib"
+
+  - tag: "réglementation"
+    patterns:
+      - "décret"
+      - "arrêté"
+      - "circulaire"
+      - "instruction"
+      - "réglementation"
+      - "législation"
+      - "code de la santé"
+      - "\\bCSP\\b"
+      - "obligation"
+      - "loi "
+
+  - tag: "JO/décrets"
+    patterns:
+      - "journal officiel"
+      - "\\bJO\\b"
+      - "\\bJORF\\b"
+      - "décret n°"
+      - "arrêté du"
+      - "publié au"
+
+  - tag: "syndical"
+    patterns:
+      - "syndicat"
+      - "syndical"
+      - "grève"
+      - "mobilisation"
+      - "manifestation"
+      - "revendication"
+      - "\\bFNI\\b"
+      - "\\bSNIIL\\b"
+      - "\\bFFMKR\\b"
+      - "\\bSNMKR\\b"
+      - "\\bFNO\\b"
+      - "\\bSNAO\\b"
+      - "\\bFNP\\b"
+
+  - tag: "ordre"
+    patterns:
+      - "\\bONI\\b"
+      - "ordre (national|des|infirmier|kiné|podolog)"
+      - "\\bCNOMK\\b"
+      - "\\bONPP\\b"
+      - "conseil (national|régional|départemental) de l'ordre"
+      - "inscription (au|à l')ordre"
+
+  - tag: "formation/DPC"
+    patterns:
+      - "\\bDPC\\b"
+      - "développement professionnel"
+      - "formation (continue|professionnelle|obligatoire)"
+      - "\\bOGDPC\\b"
+      - "\\bAndpc\\b"
+      - "attestation de formation"
+      - "\\bFIF-PL\\b"
+
+  - tag: "URSSAF/CARPIMKO"
+    patterns:
+      - "\\bURSSAF\\b"
+      - "\\bCARPIMKO\\b"
+      - "\\bCIPAV\\b"
+      - "cotisations sociales"
+      - "retraite (libérale|des libéraux)"
+      - "\\bBNC\\b"
+      - "\\bMSSI\\b"
+      - "prévoyance"
+      - "invalidité"
+
+  - tag: "démographie"
+    patterns:
+      - "démographie"
+      - "désert médical"
+      - "désert de soin"
+      - "accès aux soins"
+      - "installation"
+      - "zonage"
+      - "répartition"
+      - "effectif"
+      - "statistique"
+      - "atlas"
+
+  - tag: "télésanté"
+    patterns:
+      - "télésanté"
+      - "télémédecine"
+      - "téléconsultation"
+      - "télésuivi"
+      - "téléexpertise"
+      - "télésoin"
+      - "e-santé"
+      - "numérique en santé"
+
+  - tag: "coopération-interpro"
+    patterns:
+      - "coopération (inter|pluri|trans)pro"
+      - "pratique avancée"
+      - "\\bIPA\\b"
+      - "délégation de tâche"
+      - "pluriprofessionnel"
+      - "\\bMSP\\b"
+      - "maison de santé"
+      - "\\bESP\\b"
+      - "équipe de soins"
+
+  - tag: "actualité-générale"
+    patterns:
+      - "."   # catch-all — appliqué si aucun autre tag thématique ne matche
+    catch_all: true
