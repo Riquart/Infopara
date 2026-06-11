@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — VeilleAuxMed{% endblock %}
+{% block title %}Dashboard — InfoPara{% endblock %}
 
 {% block content %}
 
@@ -11,59 +11,13 @@
   'pedicure-podologue': 'Pédicures-Podologues'
 } %}
 
-<!-- ── Counter bar ─────────────────────────────────────────────────────── -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7">
-
-  <!-- Aujourd'hui -->
-  <div class="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
-    <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-    </div>
-    <div>
-      <div class="text-2xl font-bold text-slate-900 leading-none">{{ counters.today }}</div>
-      <div class="text-xs text-slate-500 mt-0.5">Aujourd'hui</div>
-    </div>
-  </div>
-
-  <!-- 7 jours -->
-  <div class="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
-    <div class="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-      </svg>
-    </div>
-    <div>
-      <div class="text-2xl font-bold text-slate-900 leading-none">{{ counters.week }}</div>
-      <div class="text-xs text-slate-500 mt-0.5">7 derniers jours</div>
-    </div>
-  </div>
-
-  <!-- 30 jours -->
-  <div class="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
-    <div class="w-9 h-9 rounded-lg bg-sky-50 flex items-center justify-center shrink-0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 3v18h18"/><polyline points="18 17 13 12 8 17 3 12"/>
-      </svg>
-    </div>
-    <div>
-      <div class="text-2xl font-bold text-slate-900 leading-none">{{ counters.month }}</div>
-      <div class="text-xs text-slate-500 mt-0.5">30 derniers jours</div>
-    </div>
-  </div>
-
-  <!-- Par profession -->
-  <div class="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4">
-    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Par profession</div>
-    {% for p, cnt in counters.by_profession.items() %}
-      <div class="flex items-center justify-between text-xs py-0.5">
-        <span class="text-slate-600">{{ prof_labels.get(p, p) }}</span>
-        <span class="font-semibold text-slate-800 tabular-nums">{{ cnt }}</span>
-      </div>
-    {% endfor %}
-  </div>
-
+<!-- ── Counter strip ────────────────────────────────────────────────────── -->
+<div class="flex items-center gap-4 mb-6 text-xs text-slate-500">
+  <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.today }}</span> aujourd'hui</span>
+  <span class="text-slate-200">·</span>
+  <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.week }}</span> cette semaine</span>
+  <span class="text-slate-200">·</span>
+  <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.month }}</span> ce mois</span>
 </div>
 
 <!-- ── Layout: sidebar + articles ─────────────────────────────────────── -->

@@ -21,7 +21,7 @@ from app.models import Article, Source, SourceCategory
 from app.scheduler import start_scheduler, stop_scheduler
 from app.source_loader import load_sources_from_yaml
 
-app = FastAPI(title="VeilleAuxMed", version="0.1.0")
+app = FastAPI(title="InfoPara", version="0.1.0")
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -49,7 +49,7 @@ def startup() -> None:
     load_sources_from_yaml(db)
     db.close()
     start_scheduler()
-    logger.info("VeilleAuxMed démarré")
+    logger.info("InfoPara démarré")
 
 
 @app.on_event("shutdown")
@@ -354,7 +354,7 @@ def export_opml(db: Session = Depends(get_db)):
 
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<opml version="2.0"><head><title>VeilleAuxMed — Sources RSS</title></head><body>',
+        '<opml version="2.0"><head><title>InfoPara — Sources RSS</title></head><body>',
     ]
     for s in rss_sources:
         name = s.name.replace('"', "&quot;")

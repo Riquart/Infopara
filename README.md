@@ -1,4 +1,4 @@
-# VeilleAuxMed
+# InfoPara
 
 Dashboard de veille pour les **auxiliaires médicaux libéraux en France** — agrège les actualités issues de sources officielles, syndicales, presse professionnelle et éditeurs logiciels pour 5 professions : infirmiers (IDE), kinésithérapeutes, orthophonistes, orthoptistes, pédicures-podologues.
 
@@ -148,7 +148,7 @@ app/
 ## Contraintes techniques
 
 - **Rate limiting** : 1 requête/s max par domaine
-- **User-Agent** : `VeilleAuxMed/1.0 (+contact: benoit.riquart@cgm.com)`
+- **User-Agent** : `InfoPara/1.0 (+contact: benoit.riquart@cgm.com)`
 - **Déduplication** : hash SHA1 sur `(url_canonique | titre_normalisé)`
 - **Stockage** : titre + extrait court uniquement (pas de contenu intégral)
 - **Erreurs** : timeout, 404, 403 → loggés, champ `last_error` sur la source, pas de crash

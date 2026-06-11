@@ -18,7 +18,7 @@ from app.parsers.rss import RawArticle as RssRawArticle
 from app.parsers.rss import parse_rss
 from app.tagger import tag_article
 
-USER_AGENT = "VeilleAuxMed/1.0 (+contact: benoit.riquart@cgm.com)"
+USER_AGENT = "InfoPara/1.0 (+contact: benoit.riquart@cgm.com)"
 REQUEST_TIMEOUT = 20.0
 RATE_LIMIT_DELAY = 1.1  # seconds between requests to the same domain
 
