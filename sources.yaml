@@ -1,0 +1,329 @@
+# Sources de veille — auxiliaires médicaux libéraux en France
+# kind: rss | html
+# category: officiel | syndicat | ordre | presse | editeur
+# Pour les sources HTML : selector = sélecteur CSS pointant sur les items (article, li...)
+#   Sous-sélecteurs attendus dans chaque item :
+#     title_sel, link_sel, date_sel (optionnel), summary_sel (optionnel)
+
+sources:
+
+  # ──────────────────────────────────────────────────────────────
+  # OFFICIELS / INSTITUTIONNELS
+  # ──────────────────────────────────────────────────────────────
+
+  - name: "Ameli Pro — Infirmiers"
+    url: "https://www.ameli.fr/infirmier/actualites/toutes-les-actualites.rss"
+    kind: rss
+    category: officiel
+    default_tags: ["facturation", "NGAP/CCAM", "convention", "télétransmission/SESAM-Vitale"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Ameli Pro — Kinésithérapeutes"
+    url: "https://www.ameli.fr/masseur-kinesitherapeute/actualites/toutes-les-actualites.rss"
+    kind: rss
+    category: officiel
+    default_tags: ["facturation", "NGAP/CCAM", "convention"]
+    default_profession_tags: ["kinesitherapeute"]
+    active: true
+
+  - name: "Ameli Pro — Orthophonistes"
+    url: "https://www.ameli.fr/orthophoniste/actualites/toutes-les-actualites.rss"
+    kind: rss
+    category: officiel
+    default_tags: ["facturation", "NGAP/CCAM", "convention"]
+    default_profession_tags: ["orthophoniste"]
+    active: true
+
+  - name: "Ameli Pro — Orthoptistes"
+    url: "https://www.ameli.fr/orthoptiste/actualites/toutes-les-actualites.rss"
+    kind: rss
+    category: officiel
+    default_tags: ["facturation", "NGAP/CCAM", "convention"]
+    default_profession_tags: ["orthoptiste"]
+    active: true
+
+  - name: "Ameli Pro — Pédicures-Podologues"
+    url: "https://www.ameli.fr/pedicure-podologue/actualites/toutes-les-actualites.rss"
+    kind: rss
+    category: officiel
+    default_tags: ["facturation", "NGAP/CCAM", "convention"]
+    default_profession_tags: ["pedicure-podologue"]
+    active: true
+
+  - name: "HAS — Actualités"
+    url: "https://www.has-sante.fr/jcms/fc_1249577/fr/flux-rss-de-la-has?cid=fc_1249577"
+    kind: rss
+    category: officiel
+    default_tags: ["réglementation", "formation/DPC"]
+    default_profession_tags: []
+    active: true
+
+  - name: "ANS — Agence du Numérique en Santé"
+    url: "https://esante.gouv.fr/rss.xml"
+    kind: rss
+    category: officiel
+    default_tags: ["télétransmission/SESAM-Vitale", "logiciels-métier", "télésanté"]
+    default_profession_tags: []
+    active: true
+
+  - name: "Légifrance — JORF santé (RSS)"
+    url: "https://www.legifrance.gouv.fr/rss/jorf.xml"
+    kind: rss
+    category: officiel
+    default_tags: ["JO/décrets", "réglementation"]
+    default_profession_tags: []
+    active: true
+    # Note : flux généraliste — le tagger filtre sur mots-clés métier
+
+  - name: "Ministère de la Santé — Espace presse"
+    url: "https://sante.gouv.fr/actualites/presse/communiques-de-presse/rss"
+    kind: rss
+    category: officiel
+    default_tags: ["réglementation", "actualité-générale"]
+    default_profession_tags: []
+    active: true
+
+  # ──────────────────────────────────────────────────────────────
+  # ORDRES PROFESSIONNELS
+  # ──────────────────────────────────────────────────────────────
+
+  - name: "ONI — Ordre National des Infirmiers"
+    url: "https://www.ordre-infirmiers.fr/actualites.html"
+    kind: html
+    category: ordre
+    selector: "article.news-item"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p.excerpt, .description"
+    default_tags: ["ordre", "réglementation", "syndical"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "CNOMK — Ordre des Kinésithérapeutes"
+    url: "https://www.ordremk.fr/actualites/"
+    kind: html
+    category: ordre
+    selector: "article, .post-item"
+    title_sel: "h2, h3, .entry-title"
+    link_sel: "a.more-link, h2 a, h3 a"
+    date_sel: ".post-date, time, .entry-date"
+    summary_sel: ".entry-summary, p"
+    default_tags: ["ordre", "réglementation"]
+    default_profession_tags: ["kinesitherapeute"]
+    active: true
+
+  - name: "FNO — Fédération Nationale des Orthophonistes"
+    url: "https://www.fno.fr/actualites/"
+    kind: html
+    category: ordre
+    selector: "article, .actualite-item"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p, .excerpt"
+    default_tags: ["syndical", "ordre", "réglementation"]
+    default_profession_tags: ["orthophoniste"]
+    active: true
+
+  - name: "ONPP — Ordre National des Pédicures-Podologues"
+    url: "https://www.onpp.fr/actualites"
+    kind: html
+    category: ordre
+    selector: "article, .news"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["ordre", "réglementation"]
+    default_profession_tags: ["pedicure-podologue"]
+    active: true
+
+  # ──────────────────────────────────────────────────────────────
+  # SYNDICATS
+  # ──────────────────────────────────────────────────────────────
+
+  - name: "FNI — Fédération Nationale des Infirmiers"
+    url: "https://www.fni.fr/actualites"
+    kind: html
+    category: syndicat
+    selector: "article, .view-row"
+    title_sel: "h2, h3, .views-field-title"
+    link_sel: "a"
+    date_sel: "time, .date-display-single, .views-field-created"
+    summary_sel: "p, .views-field-body"
+    default_tags: ["syndical", "convention", "facturation"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Sniil — Syndicat National des Infirmières et Infirmiers Libéraux"
+    url: "https://www.sniil.fr/actualites"
+    kind: html
+    category: syndicat
+    selector: "article, .post"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["syndical", "convention"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "FFMKR — Fédération Française des Masseurs-Kinésithérapeutes"
+    url: "https://www.ffmkr.org/actualites"
+    kind: html
+    category: syndicat
+    selector: "article, .news-item, .actualite"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["syndical", "convention", "NGAP/CCAM"]
+    default_profession_tags: ["kinesitherapeute"]
+    active: true
+
+  - name: "SNMKR — Syndicat National des Masseurs-Kinésithérapeutes"
+    url: "https://www.snmkr.fr/actualites/"
+    kind: html
+    category: syndicat
+    selector: "article, .post"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["syndical", "convention"]
+    default_profession_tags: ["kinesitherapeute"]
+    active: true
+
+  - name: "SNAO — Syndicat National Autonome des Orthoptistes"
+    url: "https://www.snao.fr/actualites"
+    kind: html
+    category: syndicat
+    selector: "article, .post, li.news"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["syndical", "convention"]
+    default_profession_tags: ["orthoptiste"]
+    active: true
+
+  - name: "FNP — Fédération Nationale des Podologues"
+    url: "https://www.fnp.fr/actualites/"
+    kind: html
+    category: syndicat
+    selector: "article, .post"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["syndical", "convention"]
+    default_profession_tags: ["pedicure-podologue"]
+    active: true
+
+  # ──────────────────────────────────────────────────────────────
+  # PRESSE PROFESSIONNELLE
+  # ──────────────────────────────────────────────────────────────
+
+  - name: "ActuSoins"
+    url: "https://www.actusoins.com/feed"
+    kind: rss
+    category: presse
+    default_tags: ["actualité-générale", "réglementation"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Espace Infirmier"
+    url: "https://www.espaceinfirmier.fr/rss/feed.rss"
+    kind: rss
+    category: presse
+    default_tags: ["actualité-générale", "formation/DPC"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Infirmiers.com"
+    url: "https://www.infirmiers.com/rss/news.xml"
+    kind: rss
+    category: presse
+    default_tags: ["actualité-générale", "formation/DPC", "réglementation"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "TICsanté"
+    url: "https://www.ticsante.com/rss.xml"
+    kind: rss
+    category: presse
+    default_tags: ["logiciels-métier", "télésanté", "télétransmission/SESAM-Vitale"]
+    default_profession_tags: []
+    active: true
+
+  - name: "DSIH — Décision Santé Informatique Hospitalière"
+    url: "https://www.dsih.fr/rss"
+    kind: rss
+    category: presse
+    default_tags: ["logiciels-métier", "télésanté"]
+    default_profession_tags: []
+    active: true
+
+  - name: "What's Up Doc"
+    url: "https://www.whatsupdoc-lemag.fr/feed"
+    kind: rss
+    category: presse
+    default_tags: ["actualité-générale", "réglementation"]
+    default_profession_tags: []
+    active: true
+
+  - name: "Egora"
+    url: "https://www.egora.fr/rss.xml"
+    kind: rss
+    category: presse
+    default_tags: ["actualité-générale", "réglementation", "convention"]
+    default_profession_tags: []
+    active: true
+
+  # ──────────────────────────────────────────────────────────────
+  # ÉDITEURS DE LOGICIELS MÉTIER
+  # ──────────────────────────────────────────────────────────────
+
+  - name: "Maiia Pro — Blog"
+    url: "https://pro.maiia.com/blog/feed/"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "télétransmission/SESAM-Vitale", "télésanté"]
+    default_profession_tags: ["infirmier", "kinesitherapeute"]
+    active: true
+
+  - name: "Inzee.Care — Actualités"
+    url: "https://www.inzee.care/blog/rss.xml"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "facturation", "télétransmission/SESAM-Vitale"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Doctolib Pro — Blog"
+    url: "https://pro.doctolib.fr/blog/feed/"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "télésanté"]
+    default_profession_tags: []
+    active: true
+
+  # ──────────────────────────────────────────────────────────────
+  # SOURCES EN ATTENTE / TODO
+  # ──────────────────────────────────────────────────────────────
+
+  # TODO: Convergence Infirmière — pas de RSS identifié, scraper https://www.convergenceinfirmiere.fr/actualites
+  # TODO: Alizé Kiné — vérifier existence flux RSS sur https://www.alize-kine.com
+  # TODO: Kiné Actualité — site https://www.kineactu.com, pas de RSS public connu
+  # TODO: Vega Cegedim (IDEL) — changelog interne, pas d'URL publique connue
+  # TODO: Albus — pas de blog public identifié
+  # TODO: Kinépratik — vérifier https://www.kinepratik.fr/actualites
+  # TODO: Holos (orthophonistes) — pas de blog public connu
+  # TODO: OrthoPro — pas de flux identifié
+  # TODO: Agathe You — https://www.agatheyou.com, scraping à étudier
+  # TODO: SYNOF — https://www.synof.fr, pas de RSS identifié
+  # TODO: UFPP — https://www.ufpp.fr, pas de RSS identifié
+  # TODO: Le Quotidien du Médecin (paramédical) — flux RSS généraliste, filtrage thème à tester
+  # TODO: Kiné-Web — https://www.kine-web.com, vérifier flux RSS
