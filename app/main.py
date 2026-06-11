@@ -4,11 +4,11 @@ import csv
 import io
 import json
 from datetime import datetime, timedelta
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
 from urllib.parse import urlencode
 
-from fastapi import Depends, FastAPI, Query, Request, Response
+from fastapi import Depends, FastAPI, Form, Query, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from loguru import logger
@@ -17,9 +17,10 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db, init_db
 from app.fetcher import fetch_all_sources, fetch_source
-from app.models import Article, Source, SourceCategory
+from app.models import Article, Source, SourceCategory, SourceKind
 from app.scheduler import start_scheduler, stop_scheduler
-from app.source_loader import load_sources_from_yaml
+from app.source_detector import detect
+from app.source_loader import load_sources_from_yaml, append_source_to_yaml
 
 app = FastAPI(title="InfoPara", version="0.1.0")
 
@@ -303,6 +304,82 @@ def refresh_one(source_id: int, request: Request, db: Session = Depends(get_db))
     status = source.last_error or f"✓ {new_count} nouveaux articles"
     css = "text-red-500" if source.last_error else "text-green-600"
     return HTMLResponse(f'<span class="{css}">{status}</span>')
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Add source
+# ──────────────────────────────────────────────────────────────────────────────
+
+@app.post("/sources/detect", response_class=HTMLResponse)
+def detect_source(request: Request, url: str = Form(...)):
+    result = detect(url)
+    return templates.TemplateResponse(
+        "_source_detect_result.html",
+        {"request": request, "r": result, "professions": PROFESSIONS, "categories": CATEGORIES},
+    )
+
+
+@app.post("/sources/add", response_class=HTMLResponse)
+def add_source(
+    request: Request,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    url: str = Form(...),
+    kind: str = Form(...),
+    category: str = Form(...),
+    selector: str = Form(""),
+    title_sel: str = Form(""),
+    link_sel: str = Form(""),
+    date_sel: str = Form(""),
+    summary_sel: str = Form(""),
+    profession_tags: List[str] = Form(default=[]),
+):
+    # Check duplicate
+    existing = db.query(Source).filter(Source.url == url).first()
+    if existing:
+        return HTMLResponse(
+            '<p class="text-amber-600 text-sm font-medium">⚠ Cette URL est déjà présente en base.</p>'
+        )
+
+    entry = {
+        "name": name, "url": url, "kind": kind, "category": category,
+        "selector": selector or None,
+        "title_sel": title_sel or None,
+        "link_sel": link_sel or None,
+        "date_sel": date_sel or None,
+        "summary_sel": summary_sel or None,
+        "default_tags": [],
+        "default_profession_tags": profession_tags,
+        "active": True,
+    }
+
+    from app.source_loader import _build_source
+    source = _build_source(entry)
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+
+    # Persist to sources.yaml
+    append_source_to_yaml(entry)
+
+    # Immediate first fetch
+    from app.fetcher import fetch_source as _fetch
+    new_count = _fetch(source, db)
+
+    error_html = ""
+    if source.last_error:
+        error_html = f'<p class="text-amber-600 text-xs mt-1">⚠ {source.last_error}</p>'
+
+    return HTMLResponse(f"""
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <p class="font-semibold">✓ Source « {name} » ajoutée</p>
+          <p class="text-xs mt-0.5">{new_count} articles collectés au premier fetch</p>
+          {error_html}
+          <p class="text-xs mt-2 text-emerald-600">
+            <a href="/sources" class="underline hover:no-underline">Voir toutes les sources →</a>
+          </p>
+        </div>
+    """)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -53,6 +53,44 @@ def _build_source(entry: dict) -> Source:
     return source
 
 
+def append_source_to_yaml(entry: dict) -> None:
+    """Append a new source entry to sources.yaml (UI-added sources section)."""
+    with open(SOURCES_PATH, encoding="utf-8") as f:
+        content = f.read()
+
+    # Build a clean YAML block for this source
+    block_lines = ["\n  # Ajoutée via l'interface", f"  - name: {yaml.dump(entry['name'], allow_unicode=True).strip()}"]
+    block_lines.append(f"    url: {yaml.dump(entry['url'], allow_unicode=True).strip()}")
+    block_lines.append(f"    kind: {entry['kind']}")
+    block_lines.append(f"    category: {entry['category']}")
+    if entry.get("selector"):
+        block_lines.append(f"    selector: {yaml.dump(entry['selector'], allow_unicode=True).strip()}")
+    if entry.get("title_sel"):
+        block_lines.append(f"    title_sel: {yaml.dump(entry['title_sel'], allow_unicode=True).strip()}")
+    if entry.get("link_sel"):
+        block_lines.append(f"    link_sel: {yaml.dump(entry['link_sel'], allow_unicode=True).strip()}")
+    if entry.get("date_sel"):
+        block_lines.append(f"    date_sel: {yaml.dump(entry['date_sel'], allow_unicode=True).strip()}")
+    if entry.get("summary_sel"):
+        block_lines.append(f"    summary_sel: {yaml.dump(entry['summary_sel'], allow_unicode=True).strip()}")
+    block_lines.append(f"    default_tags: {yaml.dump(entry.get('default_tags', []), allow_unicode=True).strip()}")
+    block_lines.append(f"    default_profession_tags: {yaml.dump(entry.get('default_profession_tags', []), allow_unicode=True).strip()}")
+    block_lines.append("    active: true")
+
+    # Insert before the TODO comment block or at the end of sources list
+    todo_marker = "  # ──────────────────────────────────────────────────────────────\n  # SOURCES EN ATTENTE"
+    block = "\n".join(block_lines) + "\n"
+    if todo_marker in content:
+        content = content.replace(todo_marker, block + "\n" + todo_marker)
+    else:
+        content = content.rstrip() + "\n" + block
+
+    with open(SOURCES_PATH, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    logger.info("Source '{}' ajoutée dans sources.yaml", entry["name"])
+
+
 def _update_source(source: Source, entry: dict) -> None:
     source.name = entry["name"]
     source.kind = SourceKind(entry["kind"])

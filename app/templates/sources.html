@@ -41,22 +41,74 @@
 } %}
 
 <!-- Page header -->
-<div class="flex items-center justify-between mb-7">
+<div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-xl font-bold text-slate-900">Sources de veille</h1>
     <p class="text-sm text-slate-500 mt-0.5">{{ sources | length }} sources configurées</p>
   </div>
-  <!-- Summary badges -->
-  <div class="flex items-center gap-2">
-    {% for cat in cat_order %}
-      {% set n = sources | selectattr('category.value', 'equalto', cat) | list | length %}
-      {% if n %}
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 {{ cat_accent.get(cat, 'text-slate-600 bg-slate-100 ring-slate-200') }}">
-          <span class="w-1.5 h-1.5 rounded-full {{ cat_dot.get(cat, 'bg-slate-400') }}"></span>
-          {{ cat_labels.get(cat, cat) }} ({{ n }})
+  <div class="flex items-center gap-3">
+    <!-- Summary badges -->
+    <div class="flex items-center gap-2">
+      {% for cat in cat_order %}
+        {% set n = sources | selectattr('category.value', 'equalto', cat) | list | length %}
+        {% if n %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 {{ cat_accent.get(cat, 'text-slate-600 bg-slate-100 ring-slate-200') }}">
+            <span class="w-1.5 h-1.5 rounded-full {{ cat_dot.get(cat, 'bg-slate-400') }}"></span>
+            {{ cat_labels.get(cat, cat) }} ({{ n }})
+          </span>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <!-- Add source button -->
+    <button
+      onclick="document.getElementById('add-source-panel').classList.toggle('hidden')"
+      class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une source
+    </button>
+  </div>
+</div>
+
+<!-- Add source panel -->
+<div id="add-source-panel" class="hidden mb-8">
+  <div class="bg-white rounded-xl border border-indigo-200 shadow-sm p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-slate-800">Ajouter une nouvelle source</h2>
+      <button onclick="document.getElementById('add-source-panel').classList.add('hidden')"
+              class="text-slate-400 hover:text-slate-600 transition">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Step 1: URL input + detect -->
+    <div class="flex gap-2 mb-4">
+      <input type="url" id="detect-url-input"
+             placeholder="https://exemple.fr/actualites"
+             class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+      <button
+        hx-post="/sources/detect"
+        hx-target="#detect-result"
+        hx-swap="innerHTML"
+        hx-include="#detect-url-input"
+        hx-vals='js:{"url": document.getElementById("detect-url-input").value}'
+        hx-indicator="#detect-spinner"
+        class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow-sm whitespace-nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Analyser
+        <span id="detect-spinner" class="htmx-indicator">
+          <svg class="spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+          </svg>
         </span>
-      {% endif %}
-    {% endfor %}
+      </button>
+    </div>
+    <p class="text-xs text-slate-400 mb-4">Collez l'URL de la page d'actualités ou du flux RSS — InfoPara détecte automatiquement si un flux RSS est disponible.</p>
+
+    <!-- Step 2: Detection result + form -->
+    <div id="detect-result"></div>
   </div>
 </div>
 
