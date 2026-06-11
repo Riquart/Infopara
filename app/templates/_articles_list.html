@@ -5,33 +5,91 @@
 
   <!-- Pagination -->
   {% if total_pages > 1 %}
-  <div class="flex items-center justify-center gap-3 mt-6 text-sm">
+  <div class="flex items-center justify-center gap-2 mt-7">
+
     {% if page > 1 %}
       <button
         hx-get="/articles?page={{ page - 1 }}&{{ filters | urlencode_filters }}"
         hx-target="#articles-container"
         hx-swap="innerHTML"
-        class="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-100">
-        ← Précédent
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200
+               bg-white text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300
+               shadow-sm transition">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Précédent
       </button>
+    {% else %}
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-100
+                   bg-slate-50 text-xs font-medium text-slate-300 cursor-not-allowed select-none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Précédent
+      </span>
     {% endif %}
-    <span class="text-gray-500">Page {{ page }} / {{ total_pages }} — {{ total }} articles</span>
+
+    <!-- Page indicator -->
+    <div class="flex items-center gap-1">
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-indigo-600 text-white text-xs font-semibold">{{ p }}</span>
+        {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+          <button
+            hx-get="/articles?page={{ p }}&{{ filters | urlencode_filters }}"
+            hx-target="#articles-container"
+            hx-swap="innerHTML"
+            class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200
+                   bg-white text-xs text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition">
+            {{ p }}
+          </button>
+        {% elif p == page - 3 or p == page + 3 %}
+          <span class="w-7 h-7 flex items-center justify-center text-xs text-slate-400">…</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
     {% if page < total_pages %}
       <button
         hx-get="/articles?page={{ page + 1 }}&{{ filters | urlencode_filters }}"
         hx-target="#articles-container"
         hx-swap="innerHTML"
-        class="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-100">
-        Suivant →
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200
+               bg-white text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300
+               shadow-sm transition">
+        Suivant
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
       </button>
+    {% else %}
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-100
+                   bg-slate-50 text-xs font-medium text-slate-300 cursor-not-allowed select-none">
+        Suivant
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </span>
     {% endif %}
+
   </div>
+
+  <p class="text-center text-xs text-slate-400 mt-2">
+    Page {{ page }} sur {{ total_pages }} — {{ total }} articles
+  </p>
   {% endif %}
 
 {% else %}
-  <div class="text-center py-16 text-gray-400">
-    <div class="text-4xl mb-3">📭</div>
-    <p class="font-medium">Aucun article trouvé</p>
-    <p class="text-sm mt-1">Modifiez les filtres ou lancez un refresh.</p>
+  <div class="flex flex-col items-center justify-center py-20 text-slate-400">
+    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.74V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12"/>
+        <path d="M22 16l-6 6-4-4"/>
+        <line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/>
+      </svg>
+    </div>
+    <p class="font-semibold text-slate-600 text-sm mb-1">Aucun article trouvé</p>
+    <p class="text-xs text-slate-400">Modifiez les filtres ou lancez une actualisation.</p>
   </div>
 {% endif %}

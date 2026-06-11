@@ -2,92 +2,179 @@
 {% block title %}Sources — VeilleAuxMed{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-5">
-  <h1 class="text-xl font-bold text-gray-800">Sources de veille</h1>
-  <span class="text-sm text-gray-500">{{ sources | length }} sources configurées</span>
-</div>
 
-{% set cat_order = ['officiel', 'ordre', 'syndicat', 'presse', 'editeur'] %}
-{% set cat_labels = {'officiel':'Officiels / Institutionnels','ordre':'Ordres professionnels','syndicat':'Syndicats','presse':'Presse professionnelle','editeur':'Éditeurs logiciels'} %}
-{% set cat_colors = {'officiel':'bg-red-100 text-red-800','ordre':'bg-indigo-100 text-indigo-800','syndicat':'bg-amber-100 text-amber-800','presse':'bg-sky-100 text-sky-800','editeur':'bg-emerald-100 text-emerald-800'} %}
-{% set prof_labels = {'infirmier':'IDE','kinesitherapeute':'Kiné','orthophoniste':'Orthoph.','orthoptiste':'Orthopt.','pedicure-podologue':'Podologue'} %}
+{% set cat_order  = ['officiel', 'ordre', 'syndicat', 'presse', 'editeur'] %}
+{% set cat_labels = {
+  'officiel': 'Officiels / Institutionnels',
+  'ordre':    'Ordres professionnels',
+  'syndicat': 'Syndicats',
+  'presse':   'Presse professionnelle',
+  'editeur':  'Éditeurs logiciels'
+} %}
+{% set cat_accent = {
+  'officiel': 'text-red-600 bg-red-50 ring-red-200',
+  'ordre':    'text-indigo-600 bg-indigo-50 ring-indigo-200',
+  'syndicat': 'text-amber-600 bg-amber-50 ring-amber-200',
+  'presse':   'text-sky-600 bg-sky-50 ring-sky-200',
+  'editeur':  'text-emerald-600 bg-emerald-50 ring-emerald-200'
+} %}
+{% set cat_dot = {
+  'officiel': 'bg-red-400',
+  'ordre':    'bg-indigo-400',
+  'syndicat': 'bg-amber-400',
+  'presse':   'bg-sky-400',
+  'editeur':  'bg-emerald-400'
+} %}
+{% set prof_colors = {
+  'infirmier':          'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+  'kinesitherapeute':   'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
+  'orthophoniste':      'bg-violet-100 text-violet-700 ring-1 ring-violet-200',
+  'orthoptiste':        'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
+  'pedicure-podologue': 'bg-rose-100 text-rose-700 ring-1 ring-rose-200'
+} %}
+{% set prof_labels = {
+  'infirmier':          'IDE',
+  'kinesitherapeute':   'Kiné',
+  'orthophoniste':      'Orthoph.',
+  'orthoptiste':        'Orthopt.',
+  'pedicure-podologue': 'Podologue'
+} %}
+
+<!-- Page header -->
+<div class="flex items-center justify-between mb-7">
+  <div>
+    <h1 class="text-xl font-bold text-slate-900">Sources de veille</h1>
+    <p class="text-sm text-slate-500 mt-0.5">{{ sources | length }} sources configurées</p>
+  </div>
+  <!-- Summary badges -->
+  <div class="flex items-center gap-2">
+    {% for cat in cat_order %}
+      {% set n = sources | selectattr('category.value', 'equalto', cat) | list | length %}
+      {% if n %}
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 {{ cat_accent.get(cat, 'text-slate-600 bg-slate-100 ring-slate-200') }}">
+          <span class="w-1.5 h-1.5 rounded-full {{ cat_dot.get(cat, 'bg-slate-400') }}"></span>
+          {{ cat_labels.get(cat, cat) }} ({{ n }})
+        </span>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
 
 {% for cat in cat_order %}
   {% set cat_sources = sources | selectattr('category.value', 'equalto', cat) | list %}
   {% if cat_sources %}
   <section class="mb-8">
-    <h2 class="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
-      <span class="badge {{ cat_colors.get(cat, 'bg-gray-100 text-gray-700') }}">{{ cat_labels.get(cat, cat) }}</span>
-      <span class="text-sm font-normal text-gray-400">{{ cat_sources | length }} sources</span>
-    </h2>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-      <table class="w-full text-sm bg-white">
-        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-          <tr>
-            <th class="text-left px-4 py-2">Nom</th>
-            <th class="text-left px-4 py-2">Type</th>
-            <th class="text-left px-4 py-2">Professions</th>
-            <th class="text-left px-4 py-2">Dernier fetch</th>
-            <th class="text-left px-4 py-2">Articles</th>
-            <th class="text-left px-4 py-2">Statut</th>
-            <th class="px-4 py-2"></th>
+    <!-- Section heading -->
+    <div class="flex items-center gap-3 mb-3">
+      <span class="w-2.5 h-2.5 rounded-full {{ cat_dot.get(cat, 'bg-slate-400') }} shrink-0"></span>
+      <h2 class="text-sm font-bold text-slate-700">{{ cat_labels.get(cat, cat) }}</h2>
+      <span class="text-xs text-slate-400 font-normal">{{ cat_sources | length }} source{{ 's' if cat_sources | length != 1 else '' }}</span>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200">
+            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Nom</th>
+            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
+            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Professions</th>
+            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Dernier fetch</th>
+            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Articles</th>
+            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Statut</th>
+            <th class="px-4 py-2.5 w-10"></th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-slate-100">
           {% for source in cat_sources %}
-          <tr class="hover:bg-gray-50 {% if not source.active %}opacity-50{% endif %}">
+          <tr class="hover:bg-slate-50 transition-colors {% if not source.active %}opacity-40{% endif %}">
+
+            <!-- Name -->
             <td class="px-4 py-3">
               <a href="{{ source.url }}" target="_blank" rel="noopener"
-                 class="font-medium text-gray-900 hover:text-indigo-700">
+                 class="font-medium text-slate-800 hover:text-indigo-600 transition-colors text-sm">
                 {{ source.name }}
               </a>
             </td>
+
+            <!-- Kind badge -->
             <td class="px-4 py-3">
-              <span class="badge {% if source.kind.value == 'rss' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %}">
-                {{ source.kind.value | upper }}
-              </span>
+              {% if source.kind.value == 'rss' %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700 ring-1 ring-blue-200">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20C4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
+                  RSS
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200">
+                  {{ source.kind.value | upper }}
+                </span>
+              {% endif %}
             </td>
+
+            <!-- Profession tags -->
             <td class="px-4 py-3">
               <div class="flex flex-wrap gap-1">
                 {% for p in source.default_profession_tags %}
-                  <span class="badge bg-gray-100 text-gray-600 text-xs">{{ prof_labels.get(p, p) }}</span>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ prof_colors.get(p, 'bg-slate-100 text-slate-600 ring-1 ring-slate-200') }}">
+                    {{ prof_labels.get(p, p) }}
+                  </span>
                 {% else %}
-                  <span class="text-gray-300 text-xs">—</span>
+                  <span class="text-slate-300 text-xs">—</span>
                 {% endfor %}
               </div>
             </td>
-            <td class="px-4 py-3 text-gray-500 text-xs">
+
+            <!-- Last fetched -->
+            <td class="px-4 py-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">
               {% if source.last_fetched_at %}
                 {{ source.last_fetched_at.strftime('%d/%m/%Y %H:%M') }}
               {% else %}
-                <span class="text-gray-300">Jamais</span>
+                <span class="text-slate-300">Jamais</span>
               {% endif %}
             </td>
-            <td class="px-4 py-3 font-semibold text-gray-700">
-              {{ counts.get(source.id, 0) }}
+
+            <!-- Article count -->
+            <td class="px-4 py-3">
+              <span class="text-sm font-semibold text-slate-700 tabular-nums">{{ counts.get(source.id, 0) }}</span>
             </td>
+
+            <!-- Status -->
             <td class="px-4 py-3 text-xs" id="source-status-{{ source.id }}">
               {% if source.last_error %}
-                <span class="text-red-500" title="{{ source.last_error }}">⚠ {{ source.last_error | truncate(40) }}</span>
+                <span class="inline-flex items-center gap-1.5 text-red-600" title="{{ source.last_error }}">
+                  <span class="w-2 h-2 rounded-full bg-red-400 shrink-0 animate-pulse"></span>
+                  <span class="truncate max-w-[140px]">{{ source.last_error | truncate(40) }}</span>
+                </span>
               {% else %}
-                <span class="text-green-600">✓ OK</span>
+                <span class="inline-flex items-center gap-1.5 text-emerald-600">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                  OK
+                </span>
               {% endif %}
             </td>
+
+            <!-- Refresh action -->
             <td class="px-4 py-3">
               <button
                 hx-post="/refresh/{{ source.id }}"
                 hx-target="#source-status-{{ source.id }}"
                 hx-swap="innerHTML"
-                class="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100 transition">
-                ↻
+                title="Actualiser cette source"
+                class="flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200
+                       text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50
+                       transition">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/>
+                </svg>
               </button>
             </td>
+
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+
   </section>
   {% endif %}
 {% endfor %}

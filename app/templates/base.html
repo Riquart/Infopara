@@ -7,41 +7,105 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <style>
-    .badge { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium; }
+    /* Tailwind CDN doesn't support @apply in <style> — use utility classes instead */
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator,
+    .htmx-indicator.htmx-request { display: inline-flex; }
     [hx-indicator].htmx-request { opacity: 0.5; }
+
+    /* Sidebar scrollbar */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    /* Category left border strip colors */
+    .cat-strip-officiel  { border-left: 3px solid #ef4444; }
+    .cat-strip-ordre     { border-left: 3px solid #6366f1; }
+    .cat-strip-syndicat  { border-left: 3px solid #f59e0b; }
+    .cat-strip-presse    { border-left: 3px solid #0ea5e9; }
+    .cat-strip-editeur   { border-left: 3px solid #10b981; }
+    .cat-strip-default   { border-left: 3px solid #e2e8f0; }
+
+    /* Smooth fade for read articles */
+    .article-read { opacity: 0.55; }
+
+    /* Line clamp support */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Spin animation for refresh */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900 h-full flex flex-col">
+<body class="bg-slate-50 text-slate-900 h-full flex flex-col" style="font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
 
-  <!-- Navbar -->
-  <nav class="bg-indigo-700 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-6">
-        <a href="/" class="font-bold text-lg tracking-tight">VeilleAuxMed</a>
-        <a href="/" class="text-sm hover:text-indigo-200 {% if request.url.path == '/' %}underline{% endif %}">Dashboard</a>
-        <a href="/sources" class="text-sm hover:text-indigo-200 {% if request.url.path == '/sources' %}underline{% endif %}">Sources</a>
+  <!-- Sticky top navbar -->
+  <nav class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800 shadow-lg">
+    <div class="max-w-screen-xl mx-auto px-5 h-14 flex items-center justify-between">
+
+      <!-- Brand + nav links -->
+      <div class="flex items-center gap-7">
+        <a href="/" class="flex items-center gap-2 select-none">
+          <!-- Pulse icon -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span class="font-bold text-white text-base tracking-tight">VeilleAuxMed</span>
+        </a>
+        <div class="flex items-center gap-1">
+          <a href="/"
+             class="px-3 py-1.5 rounded-md text-sm font-medium transition
+                    {% if request.url.path == '/' %}bg-slate-700 text-white{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}">
+            Dashboard
+          </a>
+          <a href="/sources"
+             class="px-3 py-1.5 rounded-md text-sm font-medium transition
+                    {% if request.url.path == '/sources' %}bg-slate-700 text-white{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}">
+            Sources
+          </a>
+        </div>
       </div>
+
+      <!-- Refresh controls -->
       <div class="flex items-center gap-3">
-        <div id="refresh-status" class="text-sm"></div>
+        <div id="refresh-status" class="text-xs text-slate-400"></div>
+        <span id="refresh-spinner" class="htmx-indicator">
+          <svg class="spin w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+          </svg>
+        </span>
         <button
           hx-post="/refresh"
           hx-target="#refresh-status"
           hx-swap="innerHTML"
           hx-indicator="#refresh-spinner"
-          class="bg-white text-indigo-700 font-semibold text-sm px-3 py-1.5 rounded hover:bg-indigo-50 transition">
-          ↻ Refresh now
+          class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700
+                 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition shadow-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/>
+          </svg>
+          Actualiser
         </button>
-        <span id="refresh-spinner" class="htmx-indicator text-xs text-indigo-200">⏳</span>
       </div>
     </div>
   </nav>
 
-  <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+  <main class="flex-1 max-w-screen-xl mx-auto w-full px-5 py-6">
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="text-center text-xs text-gray-400 py-3 border-t">
-    VeilleAuxMed — données issues de sources publiques — pas de génération IA
+  <footer class="border-t border-slate-200 bg-white">
+    <div class="max-w-screen-xl mx-auto px-5 py-3 flex items-center justify-between">
+      <span class="text-xs text-slate-400">VeilleAuxMed — données issues de sources publiques</span>
+      <span class="text-xs text-slate-400">Aucune génération IA</span>
+    </div>
   </footer>
+
 </body>
 </html>
