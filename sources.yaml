@@ -165,6 +165,14 @@ sources:
     default_profession_tags: ["pedicure-podologue"]
     active: true
 
+  - name: "La Ruche — CBA Info (IDEL)"
+    url: "https://laruche.cbainfo.fr/feed/"
+    kind: rss
+    category: presse
+    default_tags: ["actualité-générale", "réglementation", "facturation"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
   # ──────────────────────────────────────────────────────────────
   # SYNDICATS
   # ──────────────────────────────────────────────────────────────
