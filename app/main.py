@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import uuid
 from datetime import datetime, timedelta
 from typing import Annotated, List, Optional
 
@@ -17,14 +18,34 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db, init_db
 from app.fetcher import fetch_all_sources, fetch_source
-from app.models import Article, Source, SourceCategory, SourceKind
+from app.models import Article, Source, SourceCategory, SourceKind, UserPref
 from app.scheduler import start_scheduler, stop_scheduler
 from app.source_detector import detect
 from app.source_loader import load_sources_from_yaml, append_source_to_yaml
 
 app = FastAPI(title="InfoPara", version="0.1.0")
 
+
+@app.middleware("http")
+async def session_middleware(request: Request, call_next):
+    sid = request.cookies.get(SESSION_COOKIE)
+    new_session = sid is None
+    if new_session:
+        sid = str(uuid.uuid4())
+    request.state.session_id = sid
+    response = await call_next(request)
+    if new_session:
+        response.set_cookie(
+            SESSION_COOKIE, sid,
+            max_age=365 * 24 * 3600,
+            httponly=True,
+            samesite="lax",
+        )
+    return response
+
 templates = Jinja2Templates(directory="app/templates")
+
+SESSION_COOKIE = "infopara_session"
 
 
 def _urlencode_filters(filters: dict) -> str:
@@ -32,6 +53,11 @@ def _urlencode_filters(filters: dict) -> str:
 
 
 templates.env.filters["urlencode_filters"] = _urlencode_filters
+
+
+def get_or_create_session(request: Request, response: Response) -> str:
+    """Read session id from cookie, or create one. Works via middleware."""
+    return getattr(request.state, "session_id", "")
 
 PROFESSIONS = ["infirmier", "kinesitherapeute", "orthophoniste", "orthoptiste", "pedicure-podologue"]
 TAGS = [
@@ -41,6 +67,19 @@ TAGS = [
     "coopération-interpro", "actualité-générale",
 ]
 CATEGORIES = [c.value for c in SourceCategory]
+
+
+def get_or_create_session(request: Request, response: Response) -> str:
+    sid = request.cookies.get(SESSION_COOKIE)
+    if not sid:
+        sid = str(uuid.uuid4())
+        response.set_cookie(
+            SESSION_COOKIE, sid,
+            max_age=365 * 24 * 3600,
+            httponly=True,
+            samesite="lax",
+        )
+    return sid
 
 
 @app.on_event("startup")
@@ -64,6 +103,7 @@ def shutdown() -> None:
 
 def _build_article_query(
     db: Session,
+    session_id: str,
     profession: Optional[str],
     tag: Optional[str],
     category: Optional[str],
@@ -75,7 +115,16 @@ def _build_article_query(
     query = db.query(Article).join(Source)
 
     if not show_hidden:
-        query = query.filter(Article.is_hidden == False)  # noqa: E712
+        hidden_subq = (
+            db.query(UserPref.id)
+            .filter(
+                UserPref.session_id == session_id,
+                UserPref.article_id == Article.id,
+                UserPref.is_hidden == True,  # noqa: E712
+            )
+            .exists()
+        )
+        query = query.filter(~hidden_subq)
 
     if profession:
         query = query.filter(Article._profession_tags.contains(profession))
@@ -110,21 +159,50 @@ def _build_article_query(
     return query
 
 
+def _get_prefs(db: Session, session_id: str, article_ids: List[int]) -> dict:
+    """Return a dict {article_id: UserPref} for the current session."""
+    if not session_id or not article_ids:
+        return {}
+    rows = (
+        db.query(UserPref)
+        .filter(UserPref.session_id == session_id, UserPref.article_id.in_(article_ids))
+        .all()
+    )
+    return {p.article_id: p for p in rows}
+
+
+def _upsert_pref(db: Session, session_id: str, article_id: int, **fields) -> UserPref:
+    """Get or create a UserPref row and update the given fields."""
+    pref = (
+        db.query(UserPref)
+        .filter(UserPref.session_id == session_id, UserPref.article_id == article_id)
+        .first()
+    )
+    if pref is None:
+        pref = UserPref(session_id=session_id, article_id=article_id)
+        db.add(pref)
+    for k, v in fields.items():
+        setattr(pref, k, v)
+    db.commit()
+    db.refresh(pref)
+    return pref
+
+
 def _counters(db: Session) -> dict:
     now = datetime.utcnow()
     def count_since(days: int) -> int:
         since = now - timedelta(days=days)
         return (
             db.query(func.count(Article.id))
-            .filter(Article.fetched_at >= since, Article.is_hidden == False)  # noqa: E712
+            .filter(Article.fetched_at >= since)
             .scalar() or 0
         )
 
-    by_profession: dict[str, int] = {}
+    by_profession: dict = {}
     for p in PROFESSIONS:
         by_profession[p] = (
             db.query(func.count(Article.id))
-            .filter(Article._profession_tags.contains(p), Article.is_hidden == False)  # noqa: E712
+            .filter(Article._profession_tags.contains(p))
             .scalar() or 0
         )
 
@@ -144,6 +222,7 @@ def _counters(db: Session) -> dict:
 def index(
     request: Request,
     db: Session = Depends(get_db),
+    session_id: str = Depends(get_or_create_session),
     profession: Optional[str] = None,
     tag: Optional[str] = None,
     category: Optional[str] = None,
@@ -153,7 +232,7 @@ def index(
     page: int = 1,
 ):
     per_page = 30
-    base_query = _build_article_query(db, profession, tag, category, date_from, date_to, q)
+    base_query = _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q)
     total = base_query.count()
     articles = (
         base_query
@@ -162,12 +241,14 @@ def index(
         .limit(per_page)
         .all()
     )
+    prefs = _get_prefs(db, session_id, [a.id for a in articles])
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "articles": articles,
+            "prefs": prefs,
             "counters": _counters(db),
             "professions": PROFESSIONS,
             "tags": TAGS,
@@ -189,6 +270,7 @@ def index(
 def articles_partial(
     request: Request,
     db: Session = Depends(get_db),
+    session_id: str = Depends(get_or_create_session),
     profession: Optional[str] = None,
     tag: Optional[str] = None,
     category: Optional[str] = None,
@@ -198,7 +280,7 @@ def articles_partial(
     page: int = 1,
 ):
     per_page = 30
-    base_query = _build_article_query(db, profession, tag, category, date_from, date_to, q)
+    base_query = _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q)
     total = base_query.count()
     articles = (
         base_query
@@ -207,12 +289,14 @@ def articles_partial(
         .limit(per_page)
         .all()
     )
+    prefs = _get_prefs(db, session_id, [a.id for a in articles])
 
     return templates.TemplateResponse(
         "_articles_list.html",
         {
             "request": request,
             "articles": articles,
+            "prefs": prefs,
             "page": page,
             "total": total,
             "per_page": per_page,
@@ -230,36 +314,59 @@ def articles_partial(
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/articles/{article_id}/read", response_class=HTMLResponse)
-def mark_read(article_id: int, db: Session = Depends(get_db)):
+def mark_read(
+    article_id: int,
+    db: Session = Depends(get_db),
+    session_id: str = Depends(get_or_create_session),
+):
     article = db.get(Article, article_id)
-    if article:
-        article.is_read = not article.is_read
-        db.commit()
-    return _article_card_response(article)
+    if not article:
+        return HTMLResponse("", status_code=404)
+    current_pref = (
+        db.query(UserPref)
+        .filter(UserPref.session_id == session_id, UserPref.article_id == article_id)
+        .first()
+    )
+    is_read = not (current_pref.is_read if current_pref else False)
+    pref = _upsert_pref(db, session_id, article_id, is_read=is_read)
+    return _article_card_response(article, {article_id: pref})
 
 
 @app.post("/articles/{article_id}/star", response_class=HTMLResponse)
-def toggle_star(article_id: int, db: Session = Depends(get_db)):
+def toggle_star(
+    article_id: int,
+    db: Session = Depends(get_db),
+    session_id: str = Depends(get_or_create_session),
+):
     article = db.get(Article, article_id)
-    if article:
-        article.is_starred = not article.is_starred
-        db.commit()
-    return _article_card_response(article)
+    if not article:
+        return HTMLResponse("", status_code=404)
+    current_pref = (
+        db.query(UserPref)
+        .filter(UserPref.session_id == session_id, UserPref.article_id == article_id)
+        .first()
+    )
+    is_starred = not (current_pref.is_starred if current_pref else False)
+    pref = _upsert_pref(db, session_id, article_id, is_starred=is_starred)
+    return _article_card_response(article, {article_id: pref})
 
 
 @app.post("/articles/{article_id}/hide", response_class=HTMLResponse)
-def hide_article(article_id: int, db: Session = Depends(get_db)):
+def hide_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    session_id: str = Depends(get_or_create_session),
+):
     article = db.get(Article, article_id)
     if article:
-        article.is_hidden = True
-        db.commit()
+        _upsert_pref(db, session_id, article_id, is_hidden=True)
     return HTMLResponse("")  # HTMX swap removes the card
 
 
-def _article_card_response(article: Article | None) -> HTMLResponse:
-    if not article:
-        return HTMLResponse("", status_code=404)
-    html = templates.get_template("_article_card.html").render({"article": article, "request": None})
+def _article_card_response(article: Article, prefs: dict) -> HTMLResponse:
+    html = templates.get_template("_article_card.html").render(
+        {"article": article, "prefs": prefs, "request": None}
+    )
     return HTMLResponse(html)
 
 
@@ -270,7 +377,6 @@ def _article_card_response(article: Article | None) -> HTMLResponse:
 @app.get("/sources", response_class=HTMLResponse)
 def sources_view(request: Request, db: Session = Depends(get_db)):
     sources = db.query(Source).order_by(Source.category, Source.name).all()
-    # Attach article counts
     counts = dict(
         db.query(Article.source_id, func.count(Article.id))
         .group_by(Article.source_id)
@@ -334,7 +440,6 @@ def add_source(
     summary_sel: str = Form(""),
     profession_tags: List[str] = Form(default=[]),
 ):
-    # Check duplicate
     existing = db.query(Source).filter(Source.url == url).first()
     if existing:
         return HTMLResponse(
@@ -359,10 +464,8 @@ def add_source(
     db.commit()
     db.refresh(source)
 
-    # Persist to sources.yaml
     append_source_to_yaml(entry)
 
-    # Immediate first fetch
     from app.fetcher import fetch_source as _fetch
     new_count = _fetch(source, db)
 
@@ -388,7 +491,9 @@ def add_source(
 
 @app.get("/export/csv")
 def export_csv(
+    request: Request,
     db: Session = Depends(get_db),
+    session_id: str = Depends(get_or_create_session),
     profession: Optional[str] = None,
     tag: Optional[str] = None,
     category: Optional[str] = None,
@@ -397,7 +502,7 @@ def export_csv(
     q: Optional[str] = None,
 ):
     articles = (
-        _build_article_query(db, profession, tag, category, date_from, date_to, q)
+        _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q)
         .order_by(Article.published_at.desc().nullslast())
         .all()
     )
@@ -418,13 +523,12 @@ def export_csv(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=veille-auxmed.csv"},
+        headers={"Content-Disposition": "attachment; filename=infopara.csv"},
     )
 
 
 @app.get("/export/opml")
 def export_opml(db: Session = Depends(get_db)):
-    from app.models import SourceKind
     rss_sources = db.query(Source).filter(
         Source.kind == SourceKind.rss, Source.active == True  # noqa: E712
     ).all()
@@ -442,5 +546,5 @@ def export_opml(db: Session = Depends(get_db)):
     return Response(
         content="\n".join(lines),
         media_type="text/x-opml",
-        headers={"Content-Disposition": "attachment; filename=veille-auxmed-sources.opml"},
+        headers={"Content-Disposition": "attachment; filename=infopara-sources.opml"},
     )

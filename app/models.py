@@ -122,3 +122,22 @@ class Article(Base):
     @profession_tags.setter
     def profession_tags(self, value: List[str]) -> None:
         self._profession_tags = json.dumps(value, ensure_ascii=False)
+
+
+class UserPref(Base):
+    """Per-user article preferences, keyed by cookie session UUID."""
+    __tablename__ = "user_prefs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    article_id: Mapped[int] = mapped_column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_starred: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    article: Mapped[Article] = relationship("Article")
+
+    __table_args__ = (
+        Index("ix_user_prefs_session", "session_id"),
+        Index("ix_user_prefs_session_article", "session_id", "article_id", unique=True),
+    )
