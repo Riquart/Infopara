@@ -78,6 +78,9 @@ def _build_article_query(
 
     if profession:
         query = query.filter(Article._profession_tags.contains(profession))
+    else:
+        # Exclure les articles sans aucun tag profession (trop génériques)
+        query = query.filter(Article._profession_tags != "[]")
 
     if tag:
         query = query.filter(Article._tags.contains(tag))
