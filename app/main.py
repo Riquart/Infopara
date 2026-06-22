@@ -246,9 +246,9 @@ def index(
     prefs = _get_prefs(db, session_id, [a.id for a in articles])
 
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "articles": articles,
             "prefs": prefs,
             "counters": _counters(db),
@@ -294,9 +294,9 @@ def articles_partial(
     prefs = _get_prefs(db, session_id, [a.id for a in articles])
 
     return templates.TemplateResponse(
-        "_articles_list.html",
-        {
-            "request": request,
+        request=request,
+        name="_articles_list.html",
+        context={
             "articles": articles,
             "prefs": prefs,
             "page": page,
@@ -385,8 +385,9 @@ def sources_view(request: Request, db: Session = Depends(get_db)):
         .all()
     )
     return templates.TemplateResponse(
-        "sources.html",
-        {"request": request, "sources": sources, "counts": counts},
+        request=request,
+        name="sources.html",
+        context={"sources": sources, "counts": counts},
     )
 
 
@@ -422,8 +423,9 @@ def refresh_one(source_id: int, request: Request, db: Session = Depends(get_db))
 def detect_source(request: Request, url: str = Form(...)):
     result = detect(url)
     return templates.TemplateResponse(
-        "_source_detect_result.html",
-        {"request": request, "r": result, "professions": PROFESSIONS, "categories": CATEGORIES},
+        request=request,
+        name="_source_detect_result.html",
+        context={"r": result, "professions": PROFESSIONS, "categories": CATEGORIES},
     )
 
 
