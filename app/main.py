@@ -5,6 +5,7 @@ import io
 import json
 import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Annotated, List, Optional
 
 from urllib.parse import urlencode
@@ -43,7 +44,8 @@ async def session_middleware(request: Request, call_next):
         )
     return response
 
-templates = Jinja2Templates(directory="app/templates")
+TEMPLATES_DIR = Path(__file__).parent / "templates"
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 SESSION_COOKIE = "infopara_session"
 
