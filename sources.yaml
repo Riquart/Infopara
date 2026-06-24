@@ -22,7 +22,8 @@ sources:
     summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention", "télétransmission/SESAM-Vitale"]
     default_profession_tags: ["infirmier"]
-    active: true
+    active: false
+    # NOTE: 403 Cloudflare — inaccessible depuis serveur. Désactivé.
 
   - name: "Ameli Pro — Kinésithérapeutes"
     url: "https://www.ameli.fr/masseur-kinesitherapeute/actualites"
@@ -35,7 +36,8 @@ sources:
     summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["kinesitherapeute"]
-    active: true
+    active: false
+    # NOTE: 403 Cloudflare — inaccessible depuis serveur. Désactivé.
 
   - name: "Ameli Pro — Orthophonistes"
     url: "https://www.ameli.fr/orthophoniste/actualites"
@@ -48,7 +50,8 @@ sources:
     summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["orthophoniste"]
-    active: true
+    active: false
+    # NOTE: 403 Cloudflare — inaccessible depuis serveur. Désactivé.
 
   - name: "Ameli Pro — Orthoptistes"
     url: "https://www.ameli.fr/orthoptiste/actualites"
@@ -61,7 +64,8 @@ sources:
     summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["orthoptiste"]
-    active: true
+    active: false
+    # NOTE: 403 Cloudflare — inaccessible depuis serveur. Désactivé.
 
   - name: "Ameli Pro — Pédicures-Podologues"
     url: "https://www.ameli.fr/pedicure-podologue/actualites"
@@ -74,7 +78,8 @@ sources:
     summary_sel: ".field--name-field-chapeau, p"
     default_tags: ["facturation", "NGAP/CCAM", "convention"]
     default_profession_tags: ["pedicure-podologue"]
-    active: true
+    active: false
+    # NOTE: 403 Cloudflare — inaccessible depuis serveur. Désactivé.
 
   - name: "HAS — Actualités"
     url: "https://www.has-sante.fr/jcms/c_5443/fr/rss"
@@ -82,7 +87,8 @@ sources:
     category: officiel
     default_tags: ["réglementation", "formation/DPC"]
     default_profession_tags: []
-    active: true
+    active: false
+    # NOTE: page protégée par challenge JS (anti-bot), aucun flux RSS fonctionnel accessible.
 
   - name: "ANS — Agence du Numérique en Santé"
     url: "https://esante.gouv.fr/rss.xml"
@@ -98,7 +104,8 @@ sources:
     category: officiel
     default_tags: ["réglementation", "actualité-générale"]
     default_profession_tags: []
-    active: true
+    active: false
+    # NOTE: protégé par challenge JS anti-bot (TSPD). Désactivé.
 
   - name: "Légifrance — JORF"
     url: "https://www.legifrance.gouv.fr/rss/jorf.xml"
@@ -130,34 +137,29 @@ sources:
     url: "https://www.ordremk.fr/actualites/ordre/"
     kind: html
     category: ordre
-    selector: "article, .post"
-    title_sel: "h2, h3, .entry-title"
-    link_sel: "a"
-    date_sel: "time, .entry-date, .post-date"
-    summary_sel: ".entry-summary, p"
+    selector: ".article-item"
+    title_sel: ".article-item-title"
+    link_sel: "a.article-item"
+    date_sel: ".article-item-date, time"
+    summary_sel: ".article-item-excerpt, p"
     default_tags: ["ordre", "réglementation"]
     default_profession_tags: ["kinesitherapeute"]
     active: true
 
   - name: "FNO — Fédération Nationale des Orthophonistes"
-    url: "https://www.fno.fr/actualites/"
-    kind: html
+    url: "https://www.fno.fr/feed/"
+    kind: rss
     category: ordre
-    selector: "article, .actualite-item"
-    title_sel: "h2, h3"
-    link_sel: "a"
-    date_sel: "time, .date"
-    summary_sel: "p, .excerpt"
     default_tags: ["syndical", "ordre", "réglementation"]
     default_profession_tags: ["orthophoniste"]
     active: true
 
   - name: "ONPP — Ordre National des Pédicures-Podologues"
-    url: "https://www.onpp.fr/actualites"
+    url: "https://www.onpp.fr/communication/actualites/actualites-ordinales/"
     kind: html
     category: ordre
-    selector: "article, .news"
-    title_sel: "h2, h3"
+    selector: "article, .post, li"
+    title_sel: "h2, h3, a"
     link_sel: "a"
     date_sel: "time, .date"
     summary_sel: "p"
@@ -178,14 +180,9 @@ sources:
   # ──────────────────────────────────────────────────────────────
 
   - name: "FNI — Fédération Nationale des Infirmiers"
-    url: "https://www.fni.fr/nos-actualites"
-    kind: html
+    url: "https://www.fni.fr/feed/"
+    kind: rss
     category: syndicat
-    selector: "article, .view-row"
-    title_sel: "h2, h3, .views-field-title"
-    link_sel: "a"
-    date_sel: "time, .date-display-single, .views-field-created"
-    summary_sel: "p, .views-field-body"
     default_tags: ["syndical", "convention", "facturation"]
     default_profession_tags: ["infirmier"]
     active: true
