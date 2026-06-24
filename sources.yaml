@@ -333,6 +333,38 @@ sources:
   # ÉDITEURS DE LOGICIELS MÉTIER
   # ──────────────────────────────────────────────────────────────
 
+  - name: "Simply Vitale — Blog"
+    url: "https://www.simply-vitale.fr/feed/"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "télétransmission/SESAM-Vitale", "facturation"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Ozzen — Blog"
+    url: "https://www.ozzen.fr/feed/"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "facturation", "télétransmission/SESAM-Vitale"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Albus — Blog"
+    url: "https://www.albus.fr/feed/"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "facturation"]
+    default_profession_tags: ["infirmier"]
+    active: true
+
+  - name: "Cegedim Santé — Blog"
+    url: "https://www.cegedim-sante.fr/feed/"
+    kind: rss
+    category: editeur
+    default_tags: ["logiciels-métier", "télétransmission/SESAM-Vitale", "télésanté"]
+    default_profession_tags: ["infirmier", "kinesitherapeute", "orthophoniste"]
+    active: true
+
   - name: "Maiia Pro — Blog"
     url: "https://pro.maiia.com/blog/feed/"
     kind: rss
@@ -340,7 +372,7 @@ sources:
     default_tags: ["logiciels-métier", "télétransmission/SESAM-Vitale", "télésanté"]
     default_profession_tags: ["infirmier", "kinesitherapeute"]
     active: false
-    # NOTE: 403 — accès bloqué. Désactivé.
+    # NOTE: flux vide (0 articles). Désactivé.
 
   - name: "Inzee.Care — Actualités"
     url: "https://www.inzee.care/blog/rss.xml"
@@ -358,6 +390,32 @@ sources:
     default_profession_tags: []
     active: false
     # NOTE: 404 — URL introuvable. Désactivé.
+
+  - name: "Topaze — Actualités"
+    url: "https://www.topaze.fr/actualites/"
+    kind: html
+    category: editeur
+    selector: "article, .post"
+    title_sel: "h2, h3"
+    link_sel: "a"
+    date_sel: "time, .date"
+    summary_sel: "p"
+    default_tags: ["logiciels-métier", "facturation"]
+    default_profession_tags: ["kinesitherapeute", "orthophoniste", "orthoptiste", "pedicure-podologue"]
+    active: false
+    # NOTE: erreur 436 (rate limiting / WAF). Désactivé.
+
+  # ──────────────────────────────────────────────────────────────
+  # FORMATION / ORGANISMES SOCIAUX
+  # ──────────────────────────────────────────────────────────────
+
+  - name: "FIF-PL — Formation libéraux"
+    url: "https://www.fifpl.fr/feed/"
+    kind: rss
+    category: officiel
+    default_tags: ["formation/DPC", "URSSAF/CARPIMKO", "actualité-générale"]
+    default_profession_tags: ["infirmier", "kinesitherapeute", "orthophoniste", "orthoptiste", "pedicure-podologue"]
+    active: true
 
   # ──────────────────────────────────────────────────────────────
   # SOURCES EN ATTENTE / TODO
