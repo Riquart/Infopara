@@ -4,15 +4,93 @@
 {% block content %}
 
 {% set prof_labels = {
-  'infirmier': 'Infirmiers (IDE)',
+  'infirmier': 'Infirmiers IDE',
   'kinesitherapeute': 'Kinésithérapeutes',
   'orthophoniste': 'Orthophonistes',
   'orthoptiste': 'Orthoptistes',
   'pedicure-podologue': 'Pédicures-Podologues'
 } %}
+{% set prof_colors_active = {
+  'infirmier':          'bg-blue-500 text-white border-blue-500 shadow-sm shadow-blue-200',
+  'kinesitherapeute':   'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200',
+  'orthophoniste':      'bg-violet-500 text-white border-violet-500 shadow-sm shadow-violet-200',
+  'orthoptiste':        'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-200',
+  'pedicure-podologue': 'bg-rose-500 text-white border-rose-500 shadow-sm shadow-rose-200'
+} %}
+{% set prof_colors_idle = {
+  'infirmier':          'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300',
+  'kinesitherapeute':   'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300',
+  'orthophoniste':      'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100 hover:border-violet-300',
+  'orthoptiste':        'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300',
+  'pedicure-podologue': 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-300'
+} %}
+{% set cat_labels = {
+  'officiel': 'Officiels',
+  'ordre':    'Ordres',
+  'syndicat': 'Syndicats',
+  'presse':   'Presse',
+  'editeur':  'Éditeurs'
+} %}
+{% set cat_colors_active = {
+  'officiel': 'bg-red-500 text-white border-red-500 shadow-sm shadow-red-200',
+  'ordre':    'bg-indigo-500 text-white border-indigo-500 shadow-sm shadow-indigo-200',
+  'syndicat': 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-200',
+  'presse':   'bg-sky-500 text-white border-sky-500 shadow-sm shadow-sky-200',
+  'editeur':  'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200'
+} %}
+{% set cat_colors_idle = {
+  'officiel': 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300',
+  'ordre':    'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300',
+  'syndicat': 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300',
+  'presse':   'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 hover:border-sky-300',
+  'editeur':  'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+} %}
+
+<!-- ── Quick-filter chips ─────────────────────────────────────────────────── -->
+<div class="mb-5 space-y-2.5">
+
+  <!-- Professions -->
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest w-16 shrink-0">Profil</span>
+    {% for p in professions %}
+      {% set active = filters.profession == p %}
+      <button type="button"
+        onclick="setChipFilter('profession', '{{ p }}', this)"
+        data-filter="profession"
+        data-value="{{ p }}"
+        class="chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-pointer
+               {{ prof_colors_active[p] if active else prof_colors_idle[p] }}">
+        {% if active %}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {% endif %}
+        {{ prof_labels.get(p, p) }}
+      </button>
+    {% endfor %}
+  </div>
+
+  <!-- Categories -->
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest w-16 shrink-0">Source</span>
+    {% for c in ['officiel', 'ordre', 'syndicat', 'presse', 'editeur'] %}
+      {% set active = filters.category == c %}
+      <button type="button"
+        onclick="setChipFilter('category', '{{ c }}', this)"
+        data-filter="category"
+        data-value="{{ c }}"
+        class="chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-pointer
+               {{ cat_colors_active[c] if active else cat_colors_idle[c] }}">
+        {% if active %}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {% endif %}
+        {{ cat_labels.get(c, c) }}
+      </button>
+    {% endfor %}
+  </div>
+
+</div>
 
 <!-- ── Counter strip ────────────────────────────────────────────────────── -->
-<div class="flex items-center gap-4 mb-6 text-xs text-slate-500">
+<div class="flex items-center gap-4 mb-5 text-xs text-slate-500">
   <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.today }}</span> aujourd'hui</span>
   <span class="text-slate-200">·</span>
   <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.week }}</span> cette semaine</span>
@@ -35,6 +113,7 @@
             hx-swap="innerHTML"
             hx-trigger="change, submit"
             hx-push-url="true"
+            hx-indicator="#list-spinner"
             class="space-y-4">
 
         <!-- Search -->
@@ -50,6 +129,7 @@
                    hx-get="/articles"
                    hx-target="#articles-container"
                    hx-swap="innerHTML"
+                   hx-indicator="#list-spinner"
                    class="w-full border border-slate-300 rounded-lg pl-7 pr-2.5 py-1.5 text-xs
                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
                           placeholder:text-slate-400 text-slate-800 bg-slate-50"/>
@@ -59,7 +139,7 @@
         <!-- Profession -->
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">Profession</label>
-          <select name="profession"
+          <select id="select-profession" name="profession"
                   class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs
                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
                          bg-slate-50 text-slate-800">
@@ -87,7 +167,7 @@
         <!-- Category -->
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catégorie</label>
-          <select name="category"
+          <select id="select-category" name="category"
                   class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs
                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
                          bg-slate-50 text-slate-800">
@@ -158,6 +238,9 @@
     <div class="flex items-center justify-between mb-3 px-0.5">
       <span class="text-sm font-semibold text-slate-700">
         {{ total }} article{{ 's' if total != 1 else '' }}
+        {% if filters.profession or filters.category or filters.tag or filters.q %}
+          <span class="text-slate-400 font-normal text-xs ml-1">— filtrés</span>
+        {% endif %}
       </span>
       <span id="list-spinner" class="htmx-indicator inline-flex items-center gap-1.5 text-xs text-slate-500">
         <svg class="spin w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24">
@@ -173,5 +256,59 @@
   </div>
 
 </div>
+
+<script>
+var CHIP_ACTIVE = {
+  'infirmier':          'bg-blue-500 text-white border-blue-500 shadow-sm shadow-blue-200',
+  'kinesitherapeute':   'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200',
+  'orthophoniste':      'bg-violet-500 text-white border-violet-500 shadow-sm shadow-violet-200',
+  'orthoptiste':        'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-200',
+  'pedicure-podologue': 'bg-rose-500 text-white border-rose-500 shadow-sm shadow-rose-200',
+  'officiel':  'bg-red-500 text-white border-red-500 shadow-sm shadow-red-200',
+  'ordre':     'bg-indigo-500 text-white border-indigo-500 shadow-sm shadow-indigo-200',
+  'syndicat':  'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-200',
+  'presse':    'bg-sky-500 text-white border-sky-500 shadow-sm shadow-sky-200',
+  'editeur':   'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200'
+};
+var CHIP_IDLE = {
+  'infirmier':          'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300',
+  'kinesitherapeute':   'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300',
+  'orthophoniste':      'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100 hover:border-violet-300',
+  'orthoptiste':        'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300',
+  'pedicure-podologue': 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-300',
+  'officiel':  'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300',
+  'ordre':     'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300',
+  'syndicat':  'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300',
+  'presse':    'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 hover:border-sky-300',
+  'editeur':   'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+};
+
+function setChipFilter(filterName, value, btn) {
+  var select = document.getElementById('select-' + filterName);
+  if (!select) return;
+
+  var isActive = select.value === value;
+  select.value = isActive ? '' : value;
+
+  // Mettre à jour visuellement tous les chips du même groupe
+  document.querySelectorAll('[data-filter="' + filterName + '"]').forEach(function(chip) {
+    var v = chip.dataset.value;
+    var nowActive = select.value === v;
+    // Retirer toutes les classes des deux états
+    (CHIP_ACTIVE[v] + ' ' + CHIP_IDLE[v]).split(' ').forEach(function(c) { if(c) chip.classList.remove(c); });
+    // Appliquer le bon état
+    (nowActive ? CHIP_ACTIVE[v] : CHIP_IDLE[v]).split(' ').forEach(function(c) { if(c) chip.classList.add(c); });
+    // Icône coche
+    var check = chip.querySelector('svg');
+    if (nowActive && !check) {
+      chip.insertAdjacentHTML('afterbegin', '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>');
+    } else if (!nowActive && check) {
+      check.remove();
+    }
+  });
+
+  htmx.trigger(document.getElementById('filter-form'), 'change');
+}
+</script>
 
 {% endblock %}
