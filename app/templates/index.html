@@ -102,10 +102,26 @@
 <div class="flex gap-6 items-start">
 
   <!-- Filter sidebar -->
-  <aside class="w-52 shrink-0 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto sidebar-scroll">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+  <aside class="shrink-0 sticky top-20 max-h-[calc(100vh-6rem)]">
 
-      <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Filtres</p>
+    <!-- Toggle button -->
+    <button onclick="toggleSidebar()" id="sidebar-toggle"
+            class="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg border border-slate-200
+                   bg-white text-xs font-semibold text-slate-600 hover:border-indigo-300
+                   hover:text-indigo-600 hover:bg-indigo-50 transition shadow-sm w-full justify-between">
+      <span class="flex items-center gap-1.5">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+        </svg>
+        Filtres avancés
+      </span>
+      <svg id="sidebar-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200 rotate-0">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+
+    <div id="sidebar-panel" class="hidden w-52 overflow-y-auto sidebar-scroll max-h-[calc(100vh-8rem)]">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
 
       <form id="filter-form"
             hx-get="/articles"
@@ -231,6 +247,7 @@
 
       </form>
     </div>
+    </div><!-- /sidebar-panel -->
   </aside>
 
   <!-- Article list -->
@@ -282,6 +299,14 @@ var CHIP_IDLE = {
   'presse':    'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 hover:border-sky-300',
   'editeur':   'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
 };
+
+function toggleSidebar() {
+  var panel = document.getElementById('sidebar-panel');
+  var chevron = document.getElementById('sidebar-chevron');
+  var open = !panel.classList.contains('hidden');
+  panel.classList.toggle('hidden', open);
+  chevron.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+}
 
 function setChipFilter(filterName, value, btn) {
   var select = document.getElementById('select-' + filterName);
