@@ -113,6 +113,7 @@ def _build_article_query(
     date_to: Optional[str],
     q: Optional[str],
     show_hidden: bool = False,
+    show_read: bool = False,
 ):
     query = db.query(Article).join(Source)
 
@@ -127,6 +128,18 @@ def _build_article_query(
             .exists()
         )
         query = query.filter(~hidden_subq)
+
+    if not show_read:
+        read_subq = (
+            db.query(UserPref.id)
+            .filter(
+                UserPref.session_id == session_id,
+                UserPref.article_id == Article.id,
+                UserPref.is_read == True,  # noqa: E712
+            )
+            .exists()
+        )
+        query = query.filter(~read_subq)
 
     if profession:
         query = query.filter(Article._profession_tags.contains(profession))
@@ -231,10 +244,11 @@ def index(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     q: Optional[str] = None,
+    show_read: bool = False,
     page: int = 1,
 ):
     per_page = 30
-    base_query = _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q)
+    base_query = _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q, show_read=show_read)
     total = base_query.count()
     articles = (
         base_query
@@ -258,6 +272,7 @@ def index(
             "filters": {
                 "profession": profession, "tag": tag, "category": category,
                 "date_from": date_from, "date_to": date_to, "q": q,
+                "show_read": show_read,
             },
             "page": page,
             "total": total,
@@ -279,10 +294,11 @@ def articles_partial(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     q: Optional[str] = None,
+    show_read: bool = False,
     page: int = 1,
 ):
     per_page = 30
-    base_query = _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q)
+    base_query = _build_article_query(db, session_id, profession, tag, category, date_from, date_to, q, show_read=show_read)
     total = base_query.count()
     articles = (
         base_query
@@ -306,6 +322,7 @@ def articles_partial(
             "filters": {
                 "profession": profession, "tag": tag, "category": category,
                 "date_from": date_from, "date_to": date_to, "q": q,
+                "show_read": show_read,
             },
         },
     )

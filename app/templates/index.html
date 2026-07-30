@@ -213,6 +213,18 @@
           </div>
         </div>
 
+        <!-- Show read toggle -->
+        <div class="pt-3 border-t border-slate-100">
+          <label class="flex items-center gap-2 cursor-pointer select-none group">
+            <input type="checkbox" name="show_read" value="true"
+                   {% if filters.show_read %}checked{% endif %}
+                   class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"/>
+            <span class="text-xs font-semibold text-slate-600 group-hover:text-indigo-600 transition">
+              Afficher les lus
+            </span>
+          </label>
+        </div>
+
         <!-- Reset -->
         <a href="/"
            class="flex items-center justify-center gap-1 w-full text-xs text-slate-500
