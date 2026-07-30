@@ -97,6 +97,8 @@ def _extract_summary(entry: feedparser.FeedParserDict) -> str | None:
 
 def _clean(text: str) -> str:
     import re
+    from html import unescape
+    text = unescape(text)
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
