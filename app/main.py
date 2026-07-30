@@ -552,3 +552,18 @@ def export_opml(db: Session = Depends(get_db)):
         media_type="text/x-opml",
         headers={"Content-Disposition": "attachment; filename=infopara-sources.opml"},
     )
+
+
+@app.post("/admin/fix-future-dates")
+def fix_future_dates(db: Session = Depends(get_db)):
+    """One-shot: cap published_at to fetched_at for articles dated in the future."""
+    now = datetime.utcnow()
+    updated = (
+        db.query(Article)
+        .filter(Article.published_at > now)
+        .all()
+    )
+    for a in updated:
+        a.published_at = a.fetched_at or now
+    db.commit()
+    return {"fixed": len(updated)}

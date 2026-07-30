@@ -58,13 +58,16 @@ def _extract_url(entry: feedparser.FeedParserDict) -> str | None:
 
 
 def _extract_date(entry: feedparser.FeedParserDict) -> datetime | None:
+    import calendar
+    now = datetime.utcnow()
+
     for attr in ("published_parsed", "updated_parsed", "created_parsed"):
         val = getattr(entry, attr, None)
         if val:
             try:
-                import time
-                ts = time.mktime(val)
-                return datetime.fromtimestamp(ts, tz=timezone.utc).replace(tzinfo=None)
+                ts = calendar.timegm(val)  # struct_time is UTC from feedparser
+                dt = datetime.utcfromtimestamp(ts)
+                return min(dt, now)
             except Exception:
                 pass
 
@@ -72,7 +75,8 @@ def _extract_date(entry: feedparser.FeedParserDict) -> datetime | None:
         val = getattr(entry, attr, None)
         if val:
             try:
-                return dateutil_parser.parse(val).replace(tzinfo=None)
+                dt = dateutil_parser.parse(val).replace(tzinfo=None)
+                return min(dt, now)
             except Exception:
                 pass
 
