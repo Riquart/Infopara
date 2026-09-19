@@ -50,7 +50,7 @@
 
       <!-- Brand + nav links -->
       <div class="flex items-center gap-7">
-        <a href="/" class="flex items-center gap-2 select-none">
+        <a href="{{ request.scope.root_path }}/" class="flex items-center gap-2 select-none">
           <!-- Pulse icon -->
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -58,14 +58,14 @@
           <span class="font-bold text-white text-base tracking-tight">InfoPara</span>
         </a>
         <div class="flex items-center gap-1">
-          <a href="/"
+          <a href="{{ request.scope.root_path }}/"
              class="px-3 py-1.5 rounded-md text-sm font-medium transition
-                    {% if request.url.path == '/' %}bg-red-700 text-white{% else %}text-red-200 hover:text-white hover:bg-red-800{% endif %}">
+                    {% if request.url.path == request.scope.root_path + '/' %}bg-red-700 text-white{% else %}text-red-200 hover:text-white hover:bg-red-800{% endif %}">
             Dashboard
           </a>
-          <a href="/sources"
+          <a href="{{ request.scope.root_path }}/sources"
              class="px-3 py-1.5 rounded-md text-sm font-medium transition
-                    {% if request.url.path == '/sources' %}bg-red-700 text-white{% else %}text-red-200 hover:text-white hover:bg-red-800{% endif %}">
+                    {% if request.url.path == request.scope.root_path + '/sources' %}bg-red-700 text-white{% else %}text-red-200 hover:text-white hover:bg-red-800{% endif %}">
             Sources
           </a>
         </div>
