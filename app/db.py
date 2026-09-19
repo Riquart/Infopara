@@ -9,10 +9,41 @@ from app.models import Base
 
 import os
 
-#: Chemin de la base. Surchargeable pour un deploiement en conteneur.
-DB_PATH = Path(os.environ.get(
-    "INFOPARA_DB", Path(__file__).parent.parent / "veille.db"
-))
+from loguru import logger
+
+#: Chemin par defaut de la base (a cote du code).
+DB_PATH_DEFAUT = Path(__file__).parent.parent / "veille.db"
+
+
+def _resoudre_chemin() -> Path:
+    """Determine le chemin de la base sans jamais faire echouer le demarrage.
+
+    INFOPARA_DB permet de viser un volume persistant. Si ce chemin est
+    inutilisable (volume absent, dossier non monte, droits insuffisants), on
+    se replie sur le chemin par defaut plutot que de planter : au pire la base
+    est ephemere, mais le service reste en ligne.
+    """
+    brut = (os.environ.get("INFOPARA_DB") or "").strip()
+    if not brut:
+        return DB_PATH_DEFAUT
+
+    chemin = Path(brut)
+    try:
+        chemin.parent.mkdir(parents=True, exist_ok=True)
+        # Verifie qu'on peut reellement ecrire a cet endroit.
+        chemin.touch(exist_ok=True)
+    except OSError as exc:
+        logger.warning(
+            "INFOPARA_DB={} inutilisable ({}) : repli sur {} "
+            "(la base sera ephemere)", chemin, exc, DB_PATH_DEFAUT,
+        )
+        return DB_PATH_DEFAUT
+
+    logger.info("Base de donnees : {}", chemin)
+    return chemin
+
+
+DB_PATH = _resoudre_chemin()
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
