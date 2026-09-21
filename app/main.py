@@ -435,9 +435,11 @@ def envoyer_recap(
     """Envoie un recapitulatif des articles selectionnes."""
     import app.email as courriel
 
+    prefixe = request.scope.get("root_path", "") or ""
+
     adresses = [a.strip() for a in re.split(r"[,;\s]+", destinataires or "") if "@" in a]
     if not adresses:
-        return RedirectResponse("?envoi=adresses#liste", status_code=303)
+        return RedirectResponse(f"{prefixe}/?envoi=adresses#liste", status_code=303)
 
     articles = list(
         db.scalars(
@@ -447,7 +449,7 @@ def envoyer_recap(
         )
     )
     if not articles:
-        return RedirectResponse("?envoi=vide#liste", status_code=303)
+        return RedirectResponse(f"{prefixe}/?envoi=vide#liste", status_code=303)
 
     _memoriser_destinataires(db, ", ".join(adresses))
 
@@ -462,7 +464,7 @@ def envoyer_recap(
         gabarit="recapitulatif", nb_articles=len(articles),
     )
     logger.info("Recapitulatif : {} article(s) vers {} -> {}", len(articles), adresses, trace.statut)
-    return RedirectResponse(f"?envoi={trace.statut}&n={len(articles)}", status_code=303)
+    return RedirectResponse(f"{prefixe}/?envoi={trace.statut}&n={len(articles)}#liste", status_code=303)
 
 
 @app.get("/sources", response_class=HTMLResponse)
