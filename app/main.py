@@ -511,7 +511,11 @@ def add_source(
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/admin/reparer-dates")
-def reparer_dates(db: Session = Depends(get_db)) -> dict:
+def reparer_dates(
+    limite: int = 12,
+    source: str | None = None,
+    db: Session = Depends(get_db),
+) -> dict:
     """Recupere la vraie date de publication depuis la page de chaque article.
 
     Concerne les articles sans date, ou dont la date tombe dans le futur :
@@ -527,11 +531,16 @@ def reparer_dates(db: Session = Depends(get_db)) -> dict:
     from app.parsers.dates import extraire_date, plausible
 
     maintenant = datetime.utcnow()
-    a_traiter = (
+    requete = (
         db.query(Article)
+        .join(Source, Article.source_id == Source.id)
         .filter(or_(Article.published_at.is_(None), Article.published_at > maintenant))
-        .all()
+        .order_by(Article.published_at.is_(None), Article.id)
     )
+    if source:
+        requete = requete.filter(Source.name.ilike(f"%{source}%"))
+    total_restant = requete.count()
+    a_traiter = requete.limit(max(1, min(limite, 40))).all()
 
     corriges, echecs, inchanges = 0, 0, 0
     entetes = {"user-agent": "Mozilla/5.0 (compatible; InfoPara/1.0)"}
@@ -581,6 +590,8 @@ def reparer_dates(db: Session = Depends(get_db)) -> dict:
         "corriges": corriges,
         "inchanges": inchanges,
         "echecs": echecs,
+        "restant": max(0, total_restant - len(a_traiter)),
+        "conseil": "relancer avec ?limite=12 jusqu'a restant=0",
     }
 
 
