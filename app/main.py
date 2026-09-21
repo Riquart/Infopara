@@ -514,6 +514,7 @@ def add_source(
 def reparer_dates(
     limite: int = 12,
     source: str | None = None,
+    tout: bool = False,
     db: Session = Depends(get_db),
 ) -> dict:
     """Recupere la vraie date de publication depuis la page de chaque article.
@@ -539,6 +540,16 @@ def reparer_dates(
     )
     if source:
         requete = requete.filter(Source.name.ilike(f"%{source}%"))
+    if tout:
+        # Reprise complete d'une source : on ne se fie plus a la date stockee,
+        # on la relit sur chaque page d'article.
+        requete = (
+            db.query(Article)
+            .join(Source, Article.source_id == Source.id)
+            .order_by(Article.id)
+        )
+        if source:
+            requete = requete.filter(Source.name.ilike(f"%{source}%"))
     total_restant = requete.count()
     a_traiter = requete.limit(max(1, min(limite, 40))).all()
 
@@ -591,7 +602,7 @@ def reparer_dates(
         "inchanges": inchanges,
         "echecs": echecs,
         "restant": max(0, total_restant - len(a_traiter)),
-        "conseil": "relancer avec ?limite=12 jusqu'a restant=0",
+        "conseil": "relancer jusqu'a restant=0 ; utiliser tout=1 pour reprendre une source entiere",
     }
 
 
