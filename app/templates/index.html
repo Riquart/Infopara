@@ -342,7 +342,107 @@
     </div>
     <div id="articles-container" hx-indicator="#list-spinner">
       {% include "_articles_list.html" %}
+    
+<!-- ── Barre de selection (apparait des qu'un article est coche) ────────── -->
+<div id="barre-selection"
+     class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40
+            flex items-center gap-3 px-4 py-2.5 rounded-full
+            bg-slate-900 text-white shadow-xl border border-slate-700">
+  <span class="text-sm font-semibold">
+    <span id="compte-selection" class="tabular-nums">0</span>
+    <span id="libelle-selection">article sélectionné</span>
+  </span>
+  <span class="w-px h-5 bg-slate-700"></span>
+  <button type="button" onclick="ouvrirEnvoi()"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold
+                 bg-indigo-600 hover:bg-indigo-500 text-white transition cursor-pointer">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Envoyer par email
+  </button>
+  <button type="button" onclick="toutDeselectionner()"
+          class="text-sm text-slate-300 hover:text-white transition cursor-pointer">
+    Désélectionner
+  </button>
+</div>
+
+<!-- ── Fenêtre d'envoi ──────────────────────────────────────────────────── -->
+<div id="fenetre-envoi" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm
+                              flex items-start justify-center overflow-y-auto p-4 sm:p-8">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+      <h2 class="text-base font-bold text-slate-800">Envoyer le récapitulatif</h2>
+      <button type="button" onclick="fermerEnvoi()"
+              class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">&times;</button>
     </div>
+
+    <form method="post" action="{{ request.scope.root_path }}/envoyer-recap" id="formulaire-envoi">
+      <div id="champs-articles"></div>
+
+      <div class="px-6 py-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+            Destinataires <span class="text-slate-400 font-normal">(séparés par des virgules)</span>
+          </label>
+          <input type="text" name="destinataires" id="champ-destinataires"
+                 value="{{ destinataires or '' }}"
+                 placeholder="marie@exemple.fr, paul@exemple.fr"
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"/>
+          <p class="text-[11px] text-slate-400 mt-1.5">
+            Cette liste est mémorisée pour les prochains envois.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Objet</label>
+          <input type="text" name="sujet" id="champ-sujet" value=""
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+            Message <span class="text-slate-400 font-normal">(optionnel)</span>
+          </label>
+          <textarea name="message" rows="3"
+                    placeholder="Une phrase d'introduction, si vous le souhaitez…"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-y
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+        </div>
+
+        <div class="bg-slate-50 rounded-lg border border-slate-200 p-3.5">
+          <p class="text-xs font-semibold text-slate-600 mb-2">
+            Aperçu — <span id="apercu-compte" class="tabular-nums">0</span> article(s)
+          </p>
+          <ul id="apercu-liste" class="space-y-1 max-h-40 overflow-y-auto"></ul>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+        <p class="text-[11px] text-slate-400">
+          {% if not mail_pret %}
+            <span class="text-amber-600 font-semibold">Envoi non configuré</span> —
+            variable(s) manquante(s) : {{ mail_manquantes|join(', ') }}
+          {% else %}
+            Expéditeur : {{ mail_expediteur }}
+          {% endif %}
+        </p>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" onclick="fermerEnvoi()"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600
+                         hover:bg-slate-200 transition cursor-pointer">Annuler</button>
+          <button type="submit"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold text-white
+                         bg-indigo-600 hover:bg-indigo-500 transition cursor-pointer">
+            Envoyer
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
   </div>
 
 </div>
@@ -449,6 +549,102 @@ function majMessageFiltres() {
     msg.remove();
   }
 }
+
+// ── Sélection d'articles, conservée entre les pages et les filtres ──────────
+var CLE_SELECTION = 'infopara_selection';
+
+function lireSelection() {
+  try { return JSON.parse(sessionStorage.getItem(CLE_SELECTION) || '[]'); }
+  catch (e) { return []; }
+}
+
+function ecrireSelection(liste) {
+  sessionStorage.setItem(CLE_SELECTION, JSON.stringify(liste));
+  majBarreSelection();
+}
+
+function basculerSelection(caseACocher) {
+  var id = parseInt(caseACocher.value, 10);
+  var liste = lireSelection().filter(function (x) { return x.id !== id; });
+  if (caseACocher.checked) {
+    liste.push({ id: id, titre: caseACocher.dataset.titre || ('Article ' + id) });
+  }
+  ecrireSelection(liste);
+}
+
+function toutDeselectionner() {
+  ecrireSelection([]);
+  document.querySelectorAll('.selecteur-article').forEach(function (c) { c.checked = false; });
+}
+
+function restaurerSelection() {
+  var liste = lireSelection();
+  var ids = {};
+  liste.forEach(function (x) { ids[x.id] = true; });
+  document.querySelectorAll('.selecteur-article').forEach(function (c) {
+    c.checked = !!ids[parseInt(c.value, 10)];
+  });
+  majBarreSelection();
+}
+
+function majBarreSelection() {
+  var n = lireSelection().length;
+  var barre = document.getElementById('barre-selection');
+  var compte = document.getElementById('compte-selection');
+  var libelle = document.getElementById('libelle-selection');
+  if (!barre) return;
+  barre.classList.toggle('hidden', n === 0);
+  if (compte) compte.textContent = n;
+  if (libelle) libelle.textContent = (n > 1 ? 'articles sélectionnés' : 'article sélectionné');
+}
+
+function ouvrirEnvoi() {
+  var liste = lireSelection();
+  if (liste.length === 0) return;
+
+  // Les identifiants voyagent dans le formulaire
+  var champs = document.getElementById('champs-articles');
+  champs.innerHTML = '';
+  liste.forEach(function (x) {
+    var i = document.createElement('input');
+    i.type = 'hidden';
+    i.name = 'article_ids';
+    i.value = x.id;
+    champs.appendChild(i);
+  });
+
+  // Objet propose, modifiable
+  var sujet = document.getElementById('champ-sujet');
+  sujet.value = liste.length + (liste.length > 1 ? ' informations à retenir' : ' information à retenir');
+
+  // Apercu
+  var apercu = document.getElementById('apercu-liste');
+  var n = document.getElementById('apercu-compte');
+  apercu.innerHTML = '';
+  if (n) n.textContent = liste.length;
+  liste.forEach(function (x) {
+    var li = document.createElement('li');
+    li.className = 'text-xs text-slate-600 truncate';
+    li.textContent = '• ' + x.titre;
+    apercu.appendChild(li);
+  });
+
+  document.getElementById('fenetre-envoi').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function fermerEnvoi() {
+  document.getElementById('fenetre-envoi').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') fermerEnvoi();
+});
+
+// La selection est restauree a chaque chargement, y compris apres un filtre HTMX
+document.addEventListener('DOMContentLoaded', restaurerSelection);
+document.body.addEventListener('htmx:afterSwap', restaurerSelection);
 </script>
 
 {% endblock %}

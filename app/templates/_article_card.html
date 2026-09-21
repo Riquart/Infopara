@@ -51,6 +51,12 @@
       <!-- Top row: source badge + date + star -->
       <div class="flex items-center justify-between gap-2 mb-2">
         <div class="flex items-center gap-2 min-w-0">
+          <input type="checkbox" class="selecteur-article shrink-0 w-4 h-4 rounded border-slate-300
+                                       text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                 value="{{ article.id }}"
+                 data-titre="{{ article.title|e }}"
+                 onclick="basculerSelection(this)"
+                 title="Sélectionner pour l'envoi"/>
           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide text-white {{ badge_bg }} shrink-0">
             {{ badge_text }}
           </span>

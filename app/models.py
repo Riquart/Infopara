@@ -141,3 +141,37 @@ class UserPref(Base):
         Index("ix_user_prefs_session", "session_id"),
         Index("ix_user_prefs_session_article", "session_id", "article_id", unique=True),
     )
+
+
+class Reglage(Base):
+    """Petit magasin cle/valeur : liste des destinataires, etc."""
+
+    __tablename__ = "reglages"
+
+    cle: Mapped[str] = mapped_column(String(64), primary_key=True)
+    valeur: Mapped[str] = mapped_column(Text, default="")
+
+
+class EnvoiEmail(Base):
+    """Trace de chaque email, envoye ou non.
+
+    Meme principe que dans le portail et dans bdc-vega : on consigne AVANT de
+    tenter l'envoi, pour qu'un echec ne fasse jamais perdre l'intention, et pour
+    que tout reste consultable et relancable.
+
+    statut : en_attente / envoye / erreur / non_configure
+    """
+
+    __tablename__ = "envois_email"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    destinataires: Mapped[str] = mapped_column(Text, nullable=False)
+    sujet: Mapped[str] = mapped_column(String(255), nullable=False)
+    corps: Mapped[str] = mapped_column(Text, default="")
+    gabarit: Mapped[str] = mapped_column(String(64), default="", index=True)
+    nb_articles: Mapped[int] = mapped_column(Integer, default=0)
+    statut: Mapped[str] = mapped_column(String(16), default="en_attente", index=True)
+    message_id: Mapped[str] = mapped_column(String(128), default="")
+    erreur: Mapped[str] = mapped_column(Text, default="")
+    cree_le: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    envoye_le: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

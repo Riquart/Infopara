@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import csv
 import io
 import json
@@ -11,15 +13,15 @@ from typing import Annotated, List, Optional
 from urllib.parse import urlencode
 
 from fastapi import Depends, FastAPI, Form, Query, Request, Response
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from loguru import logger
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db, init_db
 from app.fetcher import fetch_all_sources, fetch_source
-from app.models import Article, Source, SourceCategory, SourceKind, UserPref
+from app.models import Reglage, Article, Source, SourceCategory, SourceKind, UserPref
 from app.scheduler import start_scheduler, stop_scheduler
 from app.source_detector import detect
 from app.source_loader import load_sources_from_yaml, append_source_to_yaml
@@ -48,6 +50,13 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 SESSION_COOKIE = "infopara_session"
+
+
+def _etat_mail() -> dict:
+    """Etat de la configuration d'envoi, pour l'afficher au besoin."""
+    import app.email as courriel
+
+    return courriel.etat_configuration()
 
 
 def _urlencode_filters(filters: dict) -> str:
@@ -266,6 +275,10 @@ def index(
             "articles": articles,
             "prefs": prefs,
             "counters": _counters(db),
+            "destinataires": _destinataires_memorises(db),
+            "mail_pret": _etat_mail()["pret"],
+            "mail_expediteur": _etat_mail()["expediteur"],
+            "mail_manquantes": _etat_mail()["manquantes"],
             "professions": PROFESSIONS,
             "tags": TAGS,
             "categories": CATEGORIES,
@@ -392,6 +405,65 @@ def _article_card_response(article: Article, prefs: dict) -> HTMLResponse:
 # ──────────────────────────────────────────────────────────────────────────────
 # Sources view
 # ──────────────────────────────────────────────────────────────────────────────
+
+# --- Envoi d'un recapitulatif par email -------------------------------------
+
+
+def _destinataires_memorises(db: Session) -> str:
+    ligne = db.get(Reglage, "destinataires_equipe")
+    return ligne.valeur if ligne else ""
+
+
+def _memoriser_destinataires(db: Session, valeur: str) -> None:
+    ligne = db.get(Reglage, "destinataires_equipe")
+    if ligne:
+        ligne.valeur = valeur
+    else:
+        db.add(Reglage(cle="destinataires_equipe", valeur=valeur))
+    db.commit()
+
+
+@app.post("/envoyer-recap", include_in_schema=False)
+def envoyer_recap(
+    request: Request,
+    db: Session = Depends(get_db),
+    article_ids: list[int] = Form([]),
+    destinataires: str = Form(""),
+    sujet: str = Form(""),
+    message: str = Form(""),
+):
+    """Envoie un recapitulatif des articles selectionnes."""
+    import app.email as courriel
+
+    adresses = [a.strip() for a in re.split(r"[,;\s]+", destinataires or "") if "@" in a]
+    if not adresses:
+        return RedirectResponse("?envoi=adresses#liste", status_code=303)
+
+    articles = list(
+        db.scalars(
+            select(Article)
+            .where(Article.id.in_(article_ids or []))
+            .order_by(Article.published_at.desc().nullslast())
+        )
+    )
+    if not articles:
+        return RedirectResponse("?envoi=vide#liste", status_code=303)
+
+    _memoriser_destinataires(db, ", ".join(adresses))
+
+    sujet_final = (sujet or "").strip()
+    if not sujet_final:
+        n = len(articles)
+        sujet_final = f"Veille - {n} information{'s' if n > 1 else ''} a retenir"
+
+    titre, texte, corps_html = courriel.recap_articles(articles, message)
+    trace = courriel.envoyer(
+        db, adresses, sujet_final, texte, corps_html,
+        gabarit="recapitulatif", nb_articles=len(articles),
+    )
+    logger.info("Recapitulatif : {} article(s) vers {} -> {}", len(articles), adresses, trace.statut)
+    return RedirectResponse(f"?envoi={trace.statut}&n={len(articles)}", status_code=303)
+
 
 @app.get("/sources", response_class=HTMLResponse)
 def sources_view(request: Request, db: Session = Depends(get_db)):
