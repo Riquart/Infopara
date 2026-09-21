@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import feedparser
-from dateutil import parser as dateutil_parser
+from app.parsers.dates import extraire_date
 from loguru import logger
 
 
@@ -74,11 +74,9 @@ def _extract_date(entry: feedparser.FeedParserDict) -> datetime | None:
     for attr in ("published", "updated", "created"):
         val = getattr(entry, attr, None)
         if val:
-            try:
-                dt = dateutil_parser.parse(val).replace(tzinfo=None)
+            dt = extraire_date(val)
+            if dt is not None:
                 return min(dt, now)
-            except Exception:
-                pass
 
     return None
 

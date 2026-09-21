@@ -510,6 +510,80 @@ def add_source(
 # Export
 # ──────────────────────────────────────────────────────────────────────────────
 
+@app.post("/admin/reparer-dates")
+def reparer_dates(db: Session = Depends(get_db)) -> dict:
+    """Recupere la vraie date de publication depuis la page de chaque article.
+
+    Concerne les articles sans date, ou dont la date tombe dans le futur :
+    l'ancien analyseur ne connaissait pas les mois francais et inventait une
+    date (le jour etait remplace par la date du jour).
+
+    Lit en priorite la balise article:published_time, puis le premier
+    <time datetime> de la page. Ne remplace la date que par une valeur plausible.
+    """
+    import httpx
+    from selectolax.parser import HTMLParser
+
+    from app.parsers.dates import extraire_date, plausible
+
+    maintenant = datetime.utcnow()
+    a_traiter = (
+        db.query(Article)
+        .filter(or_(Article.published_at.is_(None), Article.published_at > maintenant))
+        .all()
+    )
+
+    corriges, echecs, inchanges = 0, 0, 0
+    entetes = {"user-agent": "Mozilla/5.0 (compatible; InfoPara/1.0)"}
+
+    with httpx.Client(timeout=30, follow_redirects=True, headers=entetes) as client:
+        for article in a_traiter:
+            try:
+                reponse = client.get(article.url)
+                if reponse.status_code != 200:
+                    echecs += 1
+                    continue
+                arbre = HTMLParser(reponse.text)
+
+                candidats = []
+                meta = arbre.css_first('meta[property="article:published_time"]')
+                if meta:
+                    candidats.append(meta.attributes.get("content"))
+                t = arbre.css_first("time[datetime]")
+                if t:
+                    candidats.append(t.attributes.get("datetime"))
+                if not candidats:
+                    t = arbre.css_first("time")
+                    candidats.append(t.text(strip=True) if t else None)
+
+                trouvee = None
+                for c in candidats:
+                    quand = extraire_date(c)
+                    if quand is not None:
+                        trouvee = quand
+                        break
+
+                if trouvee is None:
+                    echecs += 1
+                    continue
+
+                if article.published_at != trouvee:
+                    article.published_at = trouvee
+                    corriges += 1
+                else:
+                    inchanges += 1
+            except Exception:
+                echecs += 1
+
+    db.commit()
+    return {
+        "examines": len(a_traiter),
+        "corriges": corriges,
+        "inchanges": inchanges,
+        "echecs": echecs,
+    }
+
+
 @app.get("/export/csv")
 def export_csv(
     request: Request,

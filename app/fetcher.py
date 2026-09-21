@@ -12,6 +12,7 @@ from loguru import logger
 from sqlalchemy.orm import Session
 
 from app.models import Article, Source, SourceKind
+from app.parsers.dates import plausible
 from app.parsers.html import RawArticle as HtmlRawArticle
 from app.parsers.html import parse_html
 from app.parsers.rss import RawArticle as RssRawArticle
@@ -127,7 +128,8 @@ def _persist_article(
         url=raw.url,
         url_hash=url_hash,
         title=raw.title,
-        published_at=raw.published_at,
+        # Garde-fou : on n'enregistre jamais une date invraisemblable.
+        published_at=raw.published_at if plausible(raw.published_at) else None,
         fetched_at=datetime.utcnow(),
         summary_raw=raw.summary_raw,
     )

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 
-from dateutil import parser as dateutil_parser
+from app.parsers.dates import extraire_date
 from loguru import logger
 from selectolax.parser import HTMLParser
 
@@ -134,10 +134,9 @@ def _extract_date(node, date_sel: Optional[str]) -> datetime | None:
     for candidate in candidates:
         if not candidate:
             continue
-        try:
-            return dateutil_parser.parse(candidate, fuzzy=True).replace(tzinfo=None)
-        except Exception:
-            continue
+        quand = extraire_date(candidate)
+        if quand is not None:
+            return quand
 
     return None
 
