@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — InfoPara{% endblock %}
 
+{% block nav_extra %}
+  {% if counters %}
+  <div class="hidden sm:flex items-center gap-2 pl-4 ml-1 border-l border-slate-700 text-xs">
+    <span class="text-slate-400"><b class="text-white tabular-nums">{{ counters.today }}</b> auj.</span>
+    <span class="text-slate-700">·</span>
+    <span class="text-slate-400"><b class="text-white tabular-nums">{{ counters.week }}</b> sem.</span>
+    <span class="text-slate-700">·</span>
+    <span class="text-slate-400"><b class="text-white tabular-nums">{{ counters.month }}</b> mois</span>
+  </div>
+  {% endif %}
+{% endblock %}
+
+
 {% block content %}
 
 {% set prof_labels = {
@@ -46,8 +59,65 @@
   'editeur':  'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
 } %}
 
-<!-- ── Quick-filter chips ─────────────────────────────────────────────────── -->
-<div class="mb-5 space-y-2.5">
+<!-- ── Ligne compacte : filtres actifs + bouton Filtres ─────────────────── -->
+{% set pastille = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border cursor-pointer' %}
+<div class="mb-3 flex flex-wrap items-center gap-1.5 min-h-[30px]">
+
+  <div id="filtres-actifs" class="flex flex-wrap items-center gap-1.5">
+    {% if filters.profession %}
+      <button type="button" data-pastille="profession"
+              onclick="retirerFiltre('profession', '{{ filters.profession }}')"
+              title="Retirer ce filtre"
+              class="{{ pastille }} {{ prof_colors_active.get(filters.profession, 'bg-slate-100 text-slate-700 border-slate-200') }}">
+        {{ prof_labels.get(filters.profession, filters.profession) }}
+        <span class="opacity-50 text-[13px] leading-none">✕</span>
+      </button>
+    {% endif %}
+    {% if filters.category %}
+      <button type="button" data-pastille="category"
+              onclick="retirerFiltre('category', '{{ filters.category }}')"
+              title="Retirer ce filtre"
+              class="{{ pastille }} {{ cat_colors_active.get(filters.category, 'bg-slate-100 text-slate-700 border-slate-200') }}">
+        {{ cat_labels.get(filters.category, filters.category) }}
+        <span class="opacity-50 text-[13px] leading-none">✕</span>
+      </button>
+    {% endif %}
+    {% if filters.tag %}
+      <button type="button" data-pastille="tag"
+              onclick="retirerFiltreTexte('tag')"
+              title="Retirer ce filtre"
+              class="{{ pastille }} bg-indigo-50 text-indigo-700 border-indigo-200">
+        {{ filters.tag }}
+        <span class="opacity-50 text-[13px] leading-none">✕</span>
+      </button>
+    {% endif %}
+    {% if filters.q %}
+      <button type="button" data-pastille="q"
+              onclick="retirerFiltreTexte('q')"
+              title="Retirer ce filtre"
+              class="{{ pastille }} bg-slate-50 text-slate-600 border-slate-200">
+        « {{ filters.q }} »
+        <span class="opacity-50 text-[13px] leading-none">✕</span>
+      </button>
+    {% endif %}
+    {% if not (filters.profession or filters.category or filters.tag or filters.q) %}
+      <span class="text-xs text-slate-400 select-none message-aucun-filtre">Aucun filtre actif</span>
+    {% endif %}
+  </div>
+
+  <button type="button" onclick="basculerPanneauFiltres()"
+          class="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+                 text-slate-600 bg-white border border-slate-200 shadow-sm
+                 hover:border-indigo-300 hover:text-indigo-600 transition cursor-pointer">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    Filtres
+    <span id="chevron-filtres" class="text-[10px] leading-none transition-transform duration-150">▼</span>
+  </button>
+</div>
+
+<!-- ── Panneau replie : toutes les puces de filtrage ────────────────────── -->
+<div id="panneau-filtres" class="hidden mb-5 space-y-2.5">
 
   <!-- Professions -->
   <div class="flex flex-wrap items-center gap-2">
@@ -87,15 +157,6 @@
     {% endfor %}
   </div>
 
-</div>
-
-<!-- ── Counter strip ────────────────────────────────────────────────────── -->
-<div class="flex items-center gap-4 mb-5 text-xs text-slate-500">
-  <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.today }}</span> aujourd'hui</span>
-  <span class="text-slate-200">·</span>
-  <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.week }}</span> cette semaine</span>
-  <span class="text-slate-200">·</span>
-  <span><span class="font-semibold text-slate-800 tabular-nums">{{ counters.month }}</span> ce mois</span>
 </div>
 
 <!-- ── Layout: sidebar + articles ─────────────────────────────────────── -->
@@ -345,6 +406,48 @@ function setChipFilter(filterName, value, btn) {
   });
 
   htmx.trigger(document.getElementById('filter-form'), 'change');
+}
+
+function basculerPanneauFiltres() {
+  var panneau = document.getElementById('panneau-filtres');
+  var chevron = document.getElementById('chevron-filtres');
+  var replie = panneau.classList.contains('hidden');
+  panneau.classList.toggle('hidden', !replie);
+  if (chevron) chevron.style.transform = replie ? 'rotate(180deg)' : '';
+}
+
+function retirerFiltre(nom, valeur) {
+  setChipFilter(nom, valeur);
+  var pastille = document.querySelector('#filtres-actifs [data-pastille="' + nom + '"]');
+  if (pastille) pastille.remove();
+  majMessageFiltres();
+}
+
+function retirerFiltreTexte(nom) {
+  var sel = document.getElementById('select-' + nom);
+  if (sel) {
+    sel.value = '';
+  } else {
+    var champ = document.querySelector('#filter-form [name="' + nom + '"]');
+    if (champ) champ.value = '';
+  }
+  htmx.trigger(document.getElementById('filter-form'), 'change');
+  var pastille = document.querySelector('#filtres-actifs [data-pastille="' + nom + '"]');
+  if (pastille) pastille.remove();
+  majMessageFiltres();
+}
+
+function majMessageFiltres() {
+  var zone = document.getElementById('filtres-actifs');
+  if (!zone) return;
+  var reste = zone.querySelectorAll('[data-pastille]').length;
+  var msg = zone.querySelector('.message-aucun-filtre');
+  if (reste === 0 && !msg) {
+    zone.insertAdjacentHTML('beforeend',
+      '<span class="text-xs text-slate-400 select-none message-aucun-filtre">Aucun filtre actif</span>');
+  } else if (reste > 0 && msg) {
+    msg.remove();
+  }
 }
 </script>
 
