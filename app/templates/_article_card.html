@@ -100,7 +100,7 @@
 
           <!-- Read / Unread -->
           <button
-            hx-post="/articles/{{ article.id }}/read"
+            hx-post="{{ request.scope.root_path }}/articles/{{ article.id }}/read"
             hx-target="#article-{{ article.id }}"
             hx-swap="outerHTML"
             title="{{ 'Marquer non-lu' if is_read else 'Marquer lu' }}"
@@ -113,7 +113,7 @@
 
           <!-- Star / Unstar -->
           <button
-            hx-post="/articles/{{ article.id }}/star"
+            hx-post="{{ request.scope.root_path }}/articles/{{ article.id }}/star"
             hx-target="#article-{{ article.id }}"
             hx-swap="outerHTML"
             title="{{ 'Désépingler' if is_starred else 'Épingler' }}"
@@ -127,7 +127,7 @@
 
           <!-- Hide -->
           <button
-            hx-post="/articles/{{ article.id }}/hide"
+            hx-post="{{ request.scope.root_path }}/articles/{{ article.id }}/hide"
             hx-target="#article-{{ article.id }}"
             hx-swap="outerHTML"
             hx-confirm="Masquer cet article ?"

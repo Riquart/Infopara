@@ -86,7 +86,7 @@
              placeholder="https://exemple.fr/actualites"
              class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
       <button
-        hx-post="/sources/detect"
+        hx-post="{{ request.scope.root_path }}/sources/detect"
         hx-target="#detect-result"
         hx-swap="innerHTML"
         hx-include="#detect-url-input"
@@ -208,7 +208,7 @@
             <!-- Refresh action -->
             <td class="px-4 py-3">
               <button
-                hx-post="/refresh/{{ source.id }}"
+                hx-post="{{ request.scope.root_path }}/refresh/{{ source.id }}"
                 hx-target="#source-status-{{ source.id }}"
                 hx-swap="innerHTML"
                 title="Actualiser cette source"

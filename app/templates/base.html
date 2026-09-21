@@ -81,7 +81,7 @@
           </svg>
         </span>
         <button
-          hx-post="/refresh"
+          hx-post="{{ request.scope.root_path }}/refresh"
           hx-target="#refresh-status"
           hx-swap="innerHTML"
           hx-indicator="#refresh-spinner"

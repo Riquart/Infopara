@@ -9,7 +9,7 @@
 
     {% if page > 1 %}
       <button
-        hx-get="/articles?page={{ page - 1 }}&{{ filters | urlencode_filters }}"
+        hx-get="{{ request.scope.root_path }}/articles?page={{ page - 1 }}&{{ filters | urlencode_filters }}"
         hx-target="#articles-container"
         hx-swap="innerHTML"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200
@@ -37,7 +37,7 @@
           <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-indigo-600 text-white text-xs font-semibold">{{ p }}</span>
         {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
           <button
-            hx-get="/articles?page={{ p }}&{{ filters | urlencode_filters }}"
+            hx-get="{{ request.scope.root_path }}/articles?page={{ p }}&{{ filters | urlencode_filters }}"
             hx-target="#articles-container"
             hx-swap="innerHTML"
             class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200
@@ -52,7 +52,7 @@
 
     {% if page < total_pages %}
       <button
-        hx-get="/articles?page={{ page + 1 }}&{{ filters | urlencode_filters }}"
+        hx-get="{{ request.scope.root_path }}/articles?page={{ page + 1 }}&{{ filters | urlencode_filters }}"
         hx-target="#articles-container"
         hx-swap="innerHTML"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200

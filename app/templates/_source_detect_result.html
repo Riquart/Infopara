@@ -42,7 +42,7 @@
   </div>
 
   <!-- Form -->
-  <form hx-post="/sources/add"
+  <form hx-post="{{ request.scope.root_path }}/sources/add"
         hx-target="#add-source-result"
         hx-swap="innerHTML"
         class="space-y-3">
