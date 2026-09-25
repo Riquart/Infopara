@@ -336,7 +336,6 @@
       <span>
         {% if envoi == 'envoye' %}
           Récapitulatif envoyé{% if envoi_n %} — {{ envoi_n }} article{{ 's' if envoi_n != '1' else '' }}{% endif %}.
-          <span class="text-emerald-700">La sélection a été vidée.</span>
         {% elif envoi == 'adresses' %}
           Aucune adresse valide : rien n'a été envoyé. La sélection est conservée.
         {% elif envoi == 'vide' %}
