@@ -325,6 +325,30 @@
 
   <!-- Article list -->
   <div class="flex-1 min-w-0">
+
+    {% if envoi %}
+    <div class="mb-4 rounded-xl border px-4 py-3 text-sm flex items-start gap-2.5
+                {% if envoi == 'envoye' %}border-emerald-200 bg-emerald-50 text-emerald-800
+                {% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+      <span class="mt-px">
+        {% if envoi == 'envoye' %}✓{% else %}!{% endif %}
+      </span>
+      <span>
+        {% if envoi == 'envoye' %}
+          Récapitulatif envoyé{% if envoi_n %} — {{ envoi_n }} article{{ 's' if envoi_n != '1' else '' }}{% endif %}.
+          <span class="text-emerald-700">La sélection a été vidée.</span>
+        {% elif envoi == 'adresses' %}
+          Aucune adresse valide : rien n'a été envoyé. La sélection est conservée.
+        {% elif envoi == 'vide' %}
+          Aucun article sélectionné : rien n'a été envoyé.
+        {% elif envoi == 'non_configure' %}
+          Envoi non tenté : la configuration d'envoi est incomplète. La sélection est conservée.
+        {% else %}
+          L'envoi a échoué. La sélection est conservée pour que vous puissiez réessayer.
+        {% endif %}
+      </span>
+    </div>
+    {% endif %}
     <div class="flex items-center justify-between mb-3 px-0.5">
       <span class="text-sm font-semibold text-slate-700">
         {{ total }} article{{ 's' if total != 1 else '' }}
@@ -553,6 +577,10 @@ function majMessageFiltres() {
 // ── Sélection d'articles, conservée entre les pages et les filtres ──────────
 var CLE_SELECTION = 'infopara_selection';
 
+// Le gabarit sait si un envoi vient d'aboutir : la route d'envoi renvoie ici
+// avec ?envoi=envoye. Dans ce cas, la selection a rempli son office.
+var ENVOI_REUSSI = {{ 'true' if envoi == 'envoye' else 'false' }};
+
 function lireSelection() {
   try { return JSON.parse(sessionStorage.getItem(CLE_SELECTION) || '[]'); }
   catch (e) { return []; }
@@ -578,6 +606,15 @@ function toutDeselectionner() {
 }
 
 function restaurerSelection() {
+  // Apres un envoi reussi, on repart d'une liste vide : les articles coches
+  // viennent de partir, les laisser coches inviterait a les envoyer deux fois.
+  if (ENVOI_REUSSI) {
+    ENVOI_REUSSI = false;
+    toutDeselectionner();
+    nettoyerAdresse();
+    return;
+  }
+
   var liste = lireSelection();
   var ids = {};
   liste.forEach(function (x) { ids[x.id] = true; });
@@ -585,6 +622,17 @@ function restaurerSelection() {
     c.checked = !!ids[parseInt(c.value, 10)];
   });
   majBarreSelection();
+}
+
+// L'adresse garde « ?envoi=envoye » : sans nettoyage, un rafraichissement
+// viderait une selection faite APRES l'envoi.
+function nettoyerAdresse() {
+  try {
+    var adresse = new URL(window.location.href);
+    adresse.searchParams.delete('envoi');
+    adresse.searchParams.delete('n');
+    history.replaceState({}, '', adresse.pathname + adresse.search + adresse.hash);
+  } catch (e) { /* navigateur ancien : sans consequence */ }
 }
 
 function majBarreSelection() {

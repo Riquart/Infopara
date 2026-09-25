@@ -291,6 +291,11 @@ def index(
             "total": total,
             "per_page": per_page,
             "total_pages": max(1, (total + per_page - 1) // per_page),
+            # Resultat du dernier envoi de recapitulatif : la route d'envoi
+            # renvoie ici avec ?envoi=... mais ces parametres n'etaient pas
+            # transmis, donc rien ne s'affichait.
+            "envoi": request.query_params.get("envoi"),
+            "envoi_n": request.query_params.get("n"),
         },
     )
 
